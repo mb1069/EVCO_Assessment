@@ -1,0 +1,3 @@
+http://www.gamedev.net/page/resources/_/technical/artificial-intelligence/application-of-genetic-programming-to-the-snake-r1175
+
+http://www.codeproject.com/Tips/1016742/Evolutionary-Algorithm-to-Teach-a-NeuralNetwork-to

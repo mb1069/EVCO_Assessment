@@ -34,10 +34,11 @@ XSIZE, YSIZE = 14, 14
 # NOTE: YOU MAY NEED TO ADD A CHECK THAT THERE ARE ENOUGH SPACES LEFT FOR
 # THE FOOD (IF THE TAIL IS VERY LONG)
 NFOOD = 1
-GENERATIONS = 100
-POP = 500
-NUM_EVALS = 2
-
+GENERATIONS = 75
+POP = 300
+NUM_EVALS = 3
+cxpb = 0.5
+mutpb = 0.3
 
 def if_then_else(condition, out1, out2):
     out1() if condition() else out2()
@@ -76,22 +77,10 @@ class SnakePlayer(list):
         self.food = []
 
     def is_tile_dangerous(self, tile):
-        return (tile in self.body) or (tile[1]<0) or (tile[1]>XSIZE-1) or (tile[0]<0) or (tile[0]>YSIZE-1)
-
-    def get_ahead_location(self):
-        tile = [self.body[0][0], self.body[0][1]]
-        if self.direction == S_UP:
-            tile[0] -= 1
-        elif self.direction == S_RIGHT:
-            tile[1] += 1
-        elif self.direction == S_DOWN:
-            tile[0] += 1
-        elif self.direction == S_LEFT:
-            tile[1] -= 1
-        self.ahead = tile
+        return (tile in self.body) or (tile[1]==0) or (tile[1]==XSIZE-1) or (tile[0]==0) or (tile[0]==YSIZE-1)
 
     def get_right_location(self):
-        tile = self.body[0]
+        tile = [self.body[0][0], self.body[0][1]]
         if self.direction == S_LEFT:
             tile[0]-=1
         elif self.direction == S_UP:
@@ -103,7 +92,7 @@ class SnakePlayer(list):
         return tile
 
     def get_left_location(self):
-        tile = self.body[0]
+        tile = [self.body[0][0], self.body[0][1]]
         if self.direction == S_LEFT:
             tile[0]+=1
         elif self.direction == S_UP:
@@ -114,7 +103,20 @@ class SnakePlayer(list):
             tile[1]+=1
         return tile
 
+    def get_ahead_location(self):
+        self.ahead = [ self.body[0][0] + (self.direction == S_DOWN and 1) + (self.direction == S_UP and -1), self.body[0][1] + (self.direction == S_LEFT and -1) + (self.direction == S_RIGHT and 1)]
 
+    def get_ahead_2_location(self):
+        tile = [self.body[0][0], self.body[0][1]]
+        if self.direction == S_LEFT:
+            tile[1]-=2
+        elif self.direction == S_UP:
+            tile[0]-=2
+        elif self.direction == S_RIGHT:
+            tile[1]+=2
+        elif self.direction == S_DOWN:
+            tile[0]+=2
+        return tile
 
     def updatePosition(self):
         self.get_ahead_location()
@@ -154,16 +156,7 @@ class SnakePlayer(list):
         return self.is_tile_dangerous(self.ahead)
 
     def sense_danger_2_ahead(self):
-        self.get_ahead_location()
-        tile = self.ahead
-        if self.direction == S_LEFT:
-            tile[1]-=1
-        elif self.direction == S_UP:
-            tile[0]-=1
-        elif self.direction == S_RIGHT:
-            tile[1]+=1
-        elif self.direction == S_DOWN:
-            tile[0]+=1
+        tile = self.get_ahead_2_location()
         return self.is_tile_dangerous(tile)
 
     def sense_wall_ahead(self):
@@ -332,18 +325,56 @@ def runGame(individual):
         total_score += snake.score
     return total_score/NUM_EVALS,
 
+def run_debug(individual):
+    global snake
+    global pset
+
+    routine = gp.compile(individual, pset)
+
+    total_score = 0
+    for run in range(0,NUM_EVALS):
+        snake._reset()
+        food = place_food(snake)
+        timer = 0
+
+
+        while not snake.snake_has_collided() and not timer == XSIZE * YSIZE:
+            ## EXECUTE THE SNAKE'S BEHAVIOUR HERE ##
+            print snake.direction, snake.body[0], snake.sense_danger_ahead()
+            routine()
+            print snake.direction
+            snake.updatePosition()
+            if snake.body[0] in food:
+                snake.score += 1
+                food = place_food(snake)
+                timer = 0
+            else:
+                snake.body.pop()
+                timer += 1  # timesteps since last eaten
+        if snake.score==0:
+            snake.score = -(abs(snake.body[0][0] - food[0][0]) + abs(snake.body[0][1] - food[0][1]))
+        total_score += snake.score
+
+
+    collided = snake.snake_has_collided()
+    hitBounds = snake.body[0][0] == 0 or snake.body[0][0] == (
+                    YSIZE - 1) or snake.body[0][1] == 0 or snake.body[0][1] == (XSIZE - 1)
+    print "Collided: ", collided
+    print "Hit wall: ", hitBounds
+    return total_score/NUM_EVALS,
+
 
 toolbox.register("evaluate", runGame)
-toolbox.register("select", tools.selTournament, tournsize=2)
-# toolbox.register("select", tools.selDoubleTournament, fitness_size=3, parsimony_size=1.2, fitness_first=True)
+# toolbox.register("select", tools.selTournament, tournsize=2)
+toolbox.register("select", tools.selDoubleTournament, fitness_size=2, parsimony_size=1.2, fitness_first=True)
 toolbox.register("mate", gp.cxOnePoint)
 toolbox.register("expr_mut", gp.genHalfAndHalf, min_=1, max_=3, pset=pset)
 toolbox.register("mutate", gp.mutUniform, expr=toolbox.expr_mut, pset=pset)
 
 toolbox.decorate("mate", gp.staticLimit(
-    key=operator.attrgetter("height"), max_value=8))
+    key=operator.attrgetter("height"), max_value=15))
 toolbox.decorate("mutate", gp.staticLimit(
-    key=operator.attrgetter("height"), max_value=8))
+    key=operator.attrgetter("height"), max_value=15))
 
 stats_fit = tools.Statistics(lambda ind: ind.fitness.values)
 stats_size = tools.Statistics(len)
@@ -410,6 +441,7 @@ def displayStrategyRun(individual):
     curses.endwin()
     print "Collided: ", collided
     print "Hit wall: ", hitBounds
+    print "Score: ", snake.score
     raw_input("Press to continue...")
 
     return snake.score,
@@ -424,7 +456,7 @@ def main():
     pop = toolbox.population(n=POP)
     hof = tools.HallOfFame(3)
     pop, log = algorithms.eaSimple(
-        pop, toolbox, 0.5, 0.3, GENERATIONS, stats=mstats, halloffame=hof, verbose=True)
+        pop, toolbox, cxpb , mutpb, GENERATIONS, stats=mstats, halloffame=hof, verbose=True)
     expr = tools.selBest(pop, 1)[0]
     print expr
 

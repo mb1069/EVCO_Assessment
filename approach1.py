@@ -31,14 +31,16 @@ import pygraphviz as pgv
 
 S_UP, S_RIGHT, S_DOWN, S_LEFT = 0, 1, 2, 3
 XSIZE, YSIZE = 14, 14
+INIT_SIZE = -1
+
 # NOTE: YOU MAY NEED TO ADD A CHECK THAT THERE ARE ENOUGH SPACES LEFT FOR
 # THE FOOD (IF THE TAIL IS VERY LONG)
 NFOOD = 1
-GENERATIONS = 75
+GENERATIONS = 150
 POP = 300
 NUM_EVALS = 3
 cxpb = 0.5
-mutpb = 0.3
+mutpb = 0.2
 
 def if_then_else(condition, out1, out2):
     out1() if condition() else out2()
@@ -59,11 +61,12 @@ def prog3(out1, out2, out3):
 class SnakePlayer(list):
     global S_RIGHT, S_LEFT, S_UP, S_DOWN
     global XSIZE, YSIZE
-
+    global INIT_SIZE
     def __init__(self):
         self.direction = S_RIGHT
         self.body = [[4, 10], [4, 9], [4, 8], [4, 7], [4, 6],
                      [4, 5], [4, 4], [4, 3], [4, 2], [4, 1], [4, 0]]
+        INIT_SIZE = len(self.body)
         self.score = 0
         self.ahead = []
         self.food = []
@@ -172,10 +175,10 @@ class SnakePlayer(list):
         return self.ahead in self.body
 
     def sense_food_above(self):
-        return self.food[0][0]<self.body[0][0]
+        return self.food[0][0]<=self.body[0][0]
 
     def sense_food_right(self):
-        return self.food[0][1]>self.body[0][1]
+        return self.food[0][1]>=self.body[0][1]
 
     def sense_food_below(self):
         return not self.sense_food_above()
@@ -240,14 +243,33 @@ class SnakePlayer(list):
     def if_moving_left(self, out1, out2):
         return partial(if_then_else, self.sense_moving_left, out1, out2)
 
+def is_tile_empty(snake, food, tile):
+    return not ((tile in snake.body) or (tile in food))
+
 # This function places a food item in the environment
+# TODO convert to using a spiral search around the point
 def place_food(snake):
     food = []
     while len(food) < NFOOD:
-        potentialfood = [random.randint(
-            1, (YSIZE - 2)), random.randint(1, (XSIZE - 2))]
-        if not (potentialfood in snake.body) and not (potentialfood in food):
-            food.append(potentialfood)
+        randx = random.randint(1, (XSIZE - 2))
+        randy = random.randint(1, (YSIZE - 2))
+        rand_food_tile = [randy, randx]
+
+
+        if not is_tile_empty(snake, food, rand_food_tile):
+            closest_free_tile = rand_food_tile
+            min_d = -1
+            for x in range(XSIZE-1):
+                for y in range(YSIZE-1):
+                    # print x,y, is_tile_empty(snake, food, [y,x])
+                    if is_tile_empty(snake, food, [y,x]):
+                        d = numpy.sqrt(numpy.power(y-randy,2) + numpy.power(x-randx,2))
+                        if d<min_d:
+                            min_d = d
+                            closest_free_tile = [y,x]
+            food.insert(0, closest_free_tile)
+        else:
+            food.insert(0, rand_food_tile)
     snake.food = food  # let the snake know where the food is
     return (food)
 
@@ -366,7 +388,7 @@ def run_debug(individual):
 
 toolbox.register("evaluate", runGame)
 # toolbox.register("select", tools.selTournament, tournsize=2)
-toolbox.register("select", tools.selDoubleTournament, fitness_size=2, parsimony_size=1.2, fitness_first=True)
+toolbox.register("select", tools.selDoubleTournament, fitness_size=2, parsimony_size=1.1, fitness_first=True)
 toolbox.register("mate", gp.cxOnePoint)
 toolbox.register("expr_mut", gp.genHalfAndHalf, min_=1, max_=3, pset=pset)
 toolbox.register("mutate", gp.mutUniform, expr=toolbox.expr_mut, pset=pset)
@@ -454,16 +476,22 @@ def main():
     ## THIS IS WHERE YOUR CORE EVOLUTIONARY ALGORITHM WILL GO #
     random.seed()
     pop = toolbox.population(n=POP)
-    hof = tools.HallOfFame(3)
+    hof = tools.HallOfFame(5)
     pop, log = algorithms.eaSimple(
         pop, toolbox, cxpb , mutpb, GENERATIONS, stats=mstats, halloffame=hof, verbose=True)
     expr = tools.selBest(pop, 1)[0]
     print expr
 
-    print "display best?"
-    inp = raw_input()
+    inp = raw_input("display best? ")
     if len(inp)>0:
         displayStrategyRun(expr)
+
+
+    inp = raw_input("eval best? ")
+    if inp == "y" or inp =="Y":
+        NUM_EVALS = input("how many times?: ")
+        print "Evaluating: ", NUM_EVALS
+        print runGame(expr)
 
     nodes, edges, labels = gp.graph(expr)
     g = pgv.AGraph(nodeSep=1.0)

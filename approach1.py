@@ -35,8 +35,8 @@ XSIZE, YSIZE = 14, 14
 # THE FOOD (IF THE TAIL IS VERY LONG)
 NFOOD = 1
 GENERATIONS = 100
-POP = 300
-NUM_EVALS = 1
+POP = 500
+NUM_EVALS = 2
 
 
 def if_then_else(condition, out1, out2):
@@ -66,7 +66,6 @@ class SnakePlayer(list):
         self.score = 0
         self.ahead = []
         self.food = []
-        self.steps = 0
 
     def _reset(self):
         self.direction = S_RIGHT
@@ -75,14 +74,21 @@ class SnakePlayer(list):
         self.score = 0
         self.ahead = []
         self.food = []
-        self.steps = 0
 
     def is_tile_dangerous(self, tile):
         return (tile in self.body) or (tile[1]<0) or (tile[1]>XSIZE-1) or (tile[0]<0) or (tile[0]>YSIZE-1)
 
     def get_ahead_location(self):
-        self.ahead = [self.body[0][0] + (self.direction == S_DOWN and 1) + (self.direction == S_UP and -1), self.body[
-            0][1] + (self.direction == S_LEFT and -1) + (self.direction == S_RIGHT and 1)]
+        tile = [self.body[0][0], self.body[0][1]]
+        if self.direction == S_UP:
+            tile[0] -= 1
+        elif self.direction == S_RIGHT:
+            tile[1] += 1
+        elif self.direction == S_DOWN:
+            tile[0] += 1
+        elif self.direction == S_LEFT:
+            tile[1] -= 1
+        self.ahead = tile
 
     def get_right_location(self):
         tile = self.body[0]
@@ -113,7 +119,6 @@ class SnakePlayer(list):
     def updatePosition(self):
         self.get_ahead_location()
         self.body.insert(0, self.ahead)
-        self.steps += 1
 
     # You are free to define more sensing options to the snake
 
@@ -179,6 +184,12 @@ class SnakePlayer(list):
     def sense_food_right(self):
         return self.food[0][1]>self.body[0][1]
 
+    def sense_food_below(self):
+        return not self.sense_food_above()
+
+    def sense_food_left(self):
+        return not self.sense_food_right()
+
     def sense_moving_up(self):
         return self.direction == S_UP
 
@@ -217,6 +228,12 @@ class SnakePlayer(list):
 
     def if_food_right(self, out1, out2):
         return partial(if_then_else, self.sense_food_right, out1, out2)
+
+    def if_food_left(self, out1, out2):
+        return partial(if_then_else, self.sense_food_left, out1, out2)
+
+    def if_food_down(self, out1, out2):
+        return partial(if_then_else, self.sense_food_down, out1, out2)
 
     def if_moving_up(self, out1, out2):
         return partial(if_then_else, self.sense_moving_up, out1, out2)
@@ -263,6 +280,9 @@ pset.addPrimitive(snake.if_danger_ahead, 2, name="if_danger_ahead")
 pset.addPrimitive(snake.if_food_above, 2, name="if_food_above")
 pset.addPrimitive(snake.if_food_right, 2, name="if_food_right")
 
+# pset.addPrimitive(snake.if_food_left, 2, name="if_food_left")
+# pset.addPrimitive(snake.if_food_down, 2, name="if_food_down")
+
 pset.addPrimitive(snake.if_moving_up, 2, name="if_moving_up")
 pset.addPrimitive(snake.if_moving_right, 2, name="if_moving_right")
 pset.addPrimitive(snake.if_moving_down, 2, name="if_moving_down")
@@ -307,21 +327,23 @@ def runGame(individual):
             else:
                 snake.body.pop()
                 timer += 1  # timesteps since last eaten
+        if snake.score==0:
+            snake.score = -(abs(snake.body[0][0] - food[0][0]) + abs(snake.body[0][1] - food[0][1]))
         total_score += snake.score
-    return snake.score/NUM_EVALS,
+    return total_score/NUM_EVALS,
 
 
 toolbox.register("evaluate", runGame)
-# toolbox.register("select", tools.selTournament, tournsize=2)
-toolbox.register("select", tools.selDoubleTournament, fitness_size=3, parsimony_size=1.1, fitness_first=True)
+toolbox.register("select", tools.selTournament, tournsize=2)
+# toolbox.register("select", tools.selDoubleTournament, fitness_size=3, parsimony_size=1.2, fitness_first=True)
 toolbox.register("mate", gp.cxOnePoint)
-toolbox.register("expr_mut", gp.genHalfAndHalf, min_=2, max_=3, pset=pset)
+toolbox.register("expr_mut", gp.genHalfAndHalf, min_=1, max_=3, pset=pset)
 toolbox.register("mutate", gp.mutUniform, expr=toolbox.expr_mut, pset=pset)
 
 toolbox.decorate("mate", gp.staticLimit(
-    key=operator.attrgetter("height"), max_value=25))
+    key=operator.attrgetter("height"), max_value=8))
 toolbox.decorate("mutate", gp.staticLimit(
-    key=operator.attrgetter("height"), max_value=25))
+    key=operator.attrgetter("height"), max_value=8))
 
 stats_fit = tools.Statistics(lambda ind: ind.fitness.values)
 stats_size = tools.Statistics(len)

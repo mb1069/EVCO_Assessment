@@ -36,9 +36,9 @@ INIT_SIZE = -1
 # NOTE: YOU MAY NEED TO ADD A CHECK THAT THERE ARE ENOUGH SPACES LEFT FOR
 # THE FOOD (IF THE TAIL IS VERY LONG)
 NFOOD = 1
-GENERATIONS = 150
-POP = 300
-NUM_EVALS = 3
+GENERATIONS = 100
+POP = 500
+NUM_EVALS = 5
 cxpb = 0.5
 mutpb = 0.2
 
@@ -256,7 +256,9 @@ def place_food(snake):
         rand_food_tile = [randy, randx]
 
 
-        if not is_tile_empty(snake, food, rand_food_tile):
+        if is_tile_empty(snake, food, rand_food_tile):
+            food.insert(0, rand_food_tile)
+        else:
             closest_free_tile = rand_food_tile
             min_d = -1
             for x in range(XSIZE-1):
@@ -266,56 +268,14 @@ def place_food(snake):
                         d = numpy.sqrt(numpy.power(y-randy,2) + numpy.power(x-randx,2))
                         if d<min_d:
                             min_d = d
-                            closest_free_tile = [y,x]
+                            closest_free_tile[0] = y
+                            closest_free_tile[1] = x
             food.insert(0, closest_free_tile)
-        else:
-            food.insert(0, rand_food_tile)
+
     snake.food = food  # let the snake know where the food is
     return (food)
 
 
-snake = SnakePlayer()
-
-pset = gp.PrimitiveSet("MAIN", 0)
-# pset.addPrimitive(operator.and_, 2, name="aNd")
-# pset.addPrimitive(operator.or_, 2, name="Or")
-# pset.addPrimitive(operator.not_, 2, name="not")
-# pset.addPrimitive(prog2, 2)
-# pset.addPrimitive(prog3, 3)
-
-pset.addPrimitive(snake.if_food_ahead, 2, name="if_food_ahead")
-# pset.addPrimitive(snake.if_wall_ahead, 2, name="if_wall_ahead")
-# pset.addPrimitive(snake.if_tail_ahead, 2, name="if_tail_ahead")
-
-pset.addPrimitive(snake.if_danger_right, 2, name="if_danger_right")
-pset.addPrimitive(snake.if_danger_left, 2, name="if_danger_left")
-pset.addPrimitive(snake.if_danger_2_ahead, 2, name="if_danger_2_ahead")
-pset.addPrimitive(snake.if_danger_ahead, 2, name="if_danger_ahead")
-
-pset.addPrimitive(snake.if_food_above, 2, name="if_food_above")
-pset.addPrimitive(snake.if_food_right, 2, name="if_food_right")
-
-# pset.addPrimitive(snake.if_food_left, 2, name="if_food_left")
-# pset.addPrimitive(snake.if_food_down, 2, name="if_food_down")
-
-pset.addPrimitive(snake.if_moving_up, 2, name="if_moving_up")
-pset.addPrimitive(snake.if_moving_right, 2, name="if_moving_right")
-pset.addPrimitive(snake.if_moving_down, 2, name="if_moving_down")
-pset.addPrimitive(snake.if_moving_left, 2, name="if_moving_left")
-
-pset.addTerminal(snake.turn_right, name="turn_right")
-pset.addTerminal(snake.turn_left, name="turn_left")
-pset.addTerminal(snake.go_straight, name="go_straight")
-
-creator.create("FitnessMax", base.Fitness, weights=(1.0,))
-creator.create("Individual", gp.PrimitiveTree, fitness=creator.FitnessMax)
-
-toolbox = base.Toolbox()
-toolbox.register("expr", gp.genHalfAndHalf, pset=pset, min_=2, max_=4)
-toolbox.register("individual", tools.initIterate,
-                 creator.Individual, toolbox.expr)
-toolbox.register("population", tools.initRepeat, list, toolbox.individual)
-toolbox.register("compile", gp.compile, pset=pset)
 
 
 def runGame(individual):
@@ -386,9 +346,54 @@ def run_debug(individual):
     return total_score/NUM_EVALS,
 
 
+
+
+snake = SnakePlayer()
+
+pset = gp.PrimitiveSet("MAIN", 0)
+# pset.addPrimitive(operator.and_, 2, name="aNd")
+# pset.addPrimitive(operator.or_, 2, name="Or")
+# pset.addPrimitive(operator.not_, 2, name="not")
+# pset.addPrimitive(prog2, 2)
+# pset.addPrimitive(prog3, 3)
+
+pset.addPrimitive(snake.if_food_ahead, 2, name="if_food_ahead")
+# pset.addPrimitive(snake.if_wall_ahead, 2, name="if_wall_ahead")
+# pset.addPrimitive(snake.if_tail_ahead, 2, name="if_tail_ahead")
+
+pset.addPrimitive(snake.if_danger_right, 2, name="if_danger_right")
+pset.addPrimitive(snake.if_danger_left, 2, name="if_danger_left")
+pset.addPrimitive(snake.if_danger_2_ahead, 2, name="if_danger_2_ahead")
+pset.addPrimitive(snake.if_danger_ahead, 2, name="if_danger_ahead")
+
+pset.addPrimitive(snake.if_food_above, 2, name="if_food_above")
+pset.addPrimitive(snake.if_food_right, 2, name="if_food_right")
+
+# pset.addPrimitive(snake.if_food_left, 2, name="if_food_left")
+# pset.addPrimitive(snake.if_food_down, 2, name="if_food_down")
+
+pset.addPrimitive(snake.if_moving_up, 2, name="if_moving_up")
+pset.addPrimitive(snake.if_moving_right, 2, name="if_moving_right")
+pset.addPrimitive(snake.if_moving_down, 2, name="if_moving_down")
+pset.addPrimitive(snake.if_moving_left, 2, name="if_moving_left")
+
+pset.addTerminal(snake.turn_right, name="turn_right")
+pset.addTerminal(snake.turn_left, name="turn_left")
+pset.addTerminal(snake.go_straight, name="go_straight")
+
+creator.create("FitnessMax", base.Fitness, weights=(1.0,))
+creator.create("Individual", gp.PrimitiveTree, fitness=creator.FitnessMax)
+
+toolbox = base.Toolbox()
+toolbox.register("expr", gp.genHalfAndHalf, pset=pset, min_=2, max_=4)
+toolbox.register("individual", tools.initIterate,
+                 creator.Individual, toolbox.expr)
+toolbox.register("population", tools.initRepeat, list, toolbox.individual)
+toolbox.register("compile", gp.compile, pset=pset)
+
 toolbox.register("evaluate", runGame)
 # toolbox.register("select", tools.selTournament, tournsize=2)
-toolbox.register("select", tools.selDoubleTournament, fitness_size=2, parsimony_size=1.1, fitness_first=True)
+toolbox.register("select", tools.selDoubleTournament, fitness_size=4, parsimony_size=1.1, fitness_first=True)
 toolbox.register("mate", gp.cxOnePoint)
 toolbox.register("expr_mut", gp.genHalfAndHalf, min_=1, max_=3, pset=pset)
 toolbox.register("mutate", gp.mutUniform, expr=toolbox.expr_mut, pset=pset)

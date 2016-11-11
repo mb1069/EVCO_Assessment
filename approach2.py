@@ -1,7 +1,4 @@
-# This code defines the agent (as in the playable version) in a way that
-# can be called and executed from an evolutionary algorithm. The code is
-# partial and will not execute. You need to add to the code to create an
-# evolutionary algorithm that evolves and executes a snake agent.
+# Uniform mutation
 import curses
 import random
 import operator
@@ -24,11 +21,11 @@ INIT_SIZE = -1
 # NOTE: YOU MAY NEED TO ADD A CHECK THAT THERE ARE ENOUGH SPACES LEFT FOR
 # THE FOOD (IF THE TAIL IS VERY LONG)
 NFOOD = 1
-GENERATIONS = 200
-POP = 1000
-NUM_EVALS = 1
+GENERATIONS = 500
+POP = 300
+NUM_EVALS = 3
 cxpb = 0.5
-mutpb = 0.2
+mutpb = 0.3
 
 def if_then_else(condition, out1, out2):
     out1() if condition() else out2()
@@ -44,7 +41,6 @@ def prog3(out1, out2, out3):
     return partial(progn,out1,out2,out3)
 
 # This class can be used to create a basic player object (snake agent)
-
 
 class SnakePlayer(list):
     global S_RIGHT, S_LEFT, S_UP, S_DOWN
@@ -386,16 +382,16 @@ toolbox.register("population", tools.initRepeat, list, toolbox.individual)
 toolbox.register("compile", gp.compile, pset=pset)
 
 toolbox.register("evaluate", runGame)
-toolbox.register("select", tools.selTournament, tournsize=3)
-# toolbox.register("select", tools.selDoubleTournament, fitness_size=3, parsimony_size=1.25, fitness_first=True)
+# toolbox.register("select", tools.selTournament, tournsize=3)
+toolbox.register("select", tools.selDoubleTournament, fitness_size=3, parsimony_size=1.2, fitness_first=True)
 toolbox.register("mate", gp.cxOnePoint)
 toolbox.register("expr_mut", gp.genHalfAndHalf, min_=1, max_=3, pset=pset)
 toolbox.register("mutate", gp.mutUniform, expr=toolbox.expr_mut, pset=pset)
 
 toolbox.decorate("mate", gp.staticLimit(
-    key=operator.attrgetter("height"), max_value=25))
+    key=operator.attrgetter("height"), max_value=30))
 toolbox.decorate("mutate", gp.staticLimit(
-    key=operator.attrgetter("height"), max_value=25))
+    key=operator.attrgetter("height"), max_value=30))
 
 stats_fit = tools.Statistics(lambda ind: ind.fitness.values)
 stats_size = tools.Statistics(len)

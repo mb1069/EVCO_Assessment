@@ -1,7 +1,4 @@
-# This code defines the agent (as in the playable version) in a way that
-# can be called and executed from an evolutionary algorithm. The code is
-# partial and will not execute. You need to add to the code to create an
-# evolutionary algorithm that evolves and executes a snake agent.
+# Generic based off of existing paper
 import curses
 import random
 import operator
@@ -38,7 +35,7 @@ INIT_SIZE = -1
 NFOOD = 1
 GENERATIONS = 100
 POP = 500
-NUM_EVALS = 5
+NUM_EVALS = 3
 cxpb = 0.5
 mutpb = 0.2
 

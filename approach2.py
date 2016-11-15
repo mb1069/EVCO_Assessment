@@ -22,7 +22,7 @@ INIT_SIZE = -1
 # THE FOOD (IF THE TAIL IS VERY LONG)
 NFOOD = 1
 GENERATIONS = 500
-POP = 300
+POP = 1000
 NUM_EVALS = 3
 cxpb = 0.5
 mutpb = 0.3
@@ -383,7 +383,7 @@ toolbox.register("compile", gp.compile, pset=pset)
 
 toolbox.register("evaluate", runGame)
 # toolbox.register("select", tools.selTournament, tournsize=3)
-toolbox.register("select", tools.selDoubleTournament, fitness_size=3, parsimony_size=1.2, fitness_first=True)
+toolbox.register("select", tools.selDoubleTournament, fitness_size=3, parsimony_size=1.3, fitness_first=True)
 toolbox.register("mate", gp.cxOnePoint)
 toolbox.register("expr_mut", gp.genHalfAndHalf, min_=1, max_=3, pset=pset)
 toolbox.register("mutate", gp.mutUniform, expr=toolbox.expr_mut, pset=pset)

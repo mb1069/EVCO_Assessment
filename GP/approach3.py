@@ -21,9 +21,9 @@ INIT_SIZE = -1
 # NOTE: YOU MAY NEED TO ADD A CHECK THAT THERE ARE ENOUGH SPACES LEFT FOR
 # THE FOOD (IF THE TAIL IS VERY LONG)
 NFOOD = 1
-GENERATIONS = 500
+GENERATIONS = 100
 POP = 1000
-NUM_EVALS = 3
+NUM_EVALS = 1
 cxpb = 0.5
 mutpb = 0.2
 
@@ -347,7 +347,7 @@ pset = gp.PrimitiveSet("MAIN", 0)
 # pset.addPrimitive(prog2, 2)
 # pset.addPrimitive(prog3, 3)
 
-pset.addPrimitive(snake.if_food_ahead, 2, name="if_food_ahead")
+# pset.addPrimitive(snake.if_food_ahead, 2, name="if_food_ahead")
 # pset.addPrimitive(snake.if_wall_ahead, 2, name="if_wall_ahead")
 # pset.addPrimitive(snake.if_tail_ahead, 2, name="if_tail_ahead")
 
@@ -356,15 +356,15 @@ pset.addPrimitive(snake.if_danger_left, 2, name="if_danger_left")
 pset.addPrimitive(snake.if_danger_2_ahead, 2, name="if_danger_2_ahead")
 pset.addPrimitive(snake.if_danger_ahead, 2, name="if_danger_ahead")
 
-pset.addPrimitive(snake.if_food_above, 2, name="if_food_above")
-pset.addPrimitive(snake.if_food_right, 2, name="if_food_right")
+# pset.addPrimitive(snake.if_food_above, 2, name="if_food_above")
+# pset.addPrimitive(snake.if_food_right, 2, name="if_food_right")
 
 # pset.addPrimitive(snake.if_food_left, 2, name="if_food_left")
 # pset.addPrimitive(snake.if_food_down, 2, name="if_food_down")
 
-pset.addPrimitive(snake.if_moving_up, 2, name="if_moving_up")
-pset.addPrimitive(snake.if_moving_right, 2, name="if_moving_right")
-pset.addPrimitive(snake.if_moving_down, 2, name="if_moving_down")
+# pset.addPrimitive(snake.if_moving_up, 2, name="if_moving_up")
+# pset.addPrimitive(snake.if_moving_right, 2, name="if_moving_right")
+# pset.addPrimitive(snake.if_moving_down, 2, name="if_moving_down")
 pset.addPrimitive(snake.if_moving_left, 2, name="if_moving_left")
 
 pset.addTerminal(snake.turn_right, name="turn_right")
@@ -383,7 +383,7 @@ toolbox.register("compile", gp.compile, pset=pset)
 
 toolbox.register("evaluate", runGame)
 # toolbox.register("select", tools.selTournament, tournsize=2)
-toolbox.register("select", tools.selDoubleTournament, fitness_size=3, parsimony_size=1.1, fitness_first=True)
+toolbox.register("select", tools.selDoubleTournament, fitness_size=3, parsimony_size=1.05, fitness_first=True)
 toolbox.register("mate", gp.cxOnePoint)
 toolbox.register("expr_mut", gp.genHalfAndHalf, min_=1, max_=3, pset=pset)
 # toolbox.register("mutate", gp.mutUniform, expr=toolbox.expr_mut, pset=pset)

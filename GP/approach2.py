@@ -271,7 +271,6 @@ def place_food(snake):
 def runGame(individual):
     global snake
     global pset
-
     routine = gp.compile(individual, pset)
 
     total_score = 0
@@ -300,7 +299,6 @@ def runGame(individual):
 def run_debug(individual):
     global snake
     global pset
-
     routine = gp.compile(individual, pset)
 
     total_score = 0

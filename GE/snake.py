@@ -8,7 +8,7 @@ import numpy
 
 S_UP, S_RIGHT, S_DOWN, S_LEFT = 0, 1, 2, 3
 XSIZE, YSIZE = 14, 14
-NUM_EVALS = 4
+NUM_EVALS = 1
 NFOOD = 1
 
 class SnakePlayer(list):

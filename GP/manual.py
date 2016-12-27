@@ -16,16 +16,16 @@ import multiprocessing
 S_UP, S_RIGHT, S_DOWN, S_LEFT = 0, 1, 2, 3
 XSIZE, YSIZE = 14, 14
 INIT_SIZE = -1
-
+directions = ["UP", "RIGHT", "DOWN", "LEFT"]
 # NOTE: YOU MAY NEED TO ADD A CHECK THAT THERE ARE ENOUGH SPACES LEFT FOR
 # THE FOOD (IF THE TAIL IS VERY LONG)
 NFOOD = 1
 GENERATIONS = 1
-POP = 10000
+POP = 1000
 NUM_EVALS = 5
 cxpb = 0.5
 mutpb = 0.2
-parsimony = 1.1
+parsimony = 1.2
 
 def if_then_else(condition, out1, out2):
     out1() if condition() else out2()
@@ -79,16 +79,16 @@ class SnakePlayer(list):
             tile[1]-=1
         return tile
 
-    def get_left_location(self):
+    def get_left_location(self, distance):
         tile = [self.body[0][0], self.body[0][1]]
         if self.direction == S_LEFT:
-            tile[0]+=1
+            tile[0]+=distance
         elif self.direction == S_UP:
-            tile[1]-=1
+            tile[1]-=distance
         elif self.direction == S_RIGHT:
-            tile[0]-=1
+            tile[0]-=distance
         elif self.direction == S_DOWN:
-            tile[1]+=1
+            tile[1]+=distance
         return tile
 
     def get_ahead_location(self):
@@ -136,8 +136,13 @@ class SnakePlayer(list):
         return self.is_tile_dangerous(tile)
 
     def sense_danger_left(self):
-        tile = self.get_left_location()
-        return self.is_tile_dangerous(tile)
+        tile = self.get_left_location(1)
+        return self.is_tile_dangerous(tile)    
+
+    def sense_wall_2_left(self):
+        tile = self.get_left_location(2)
+        return( tile[0] == 0 or tile[0] == (YSIZE-1) or tile[1] == 0 or tile[1] == (XSIZE-1) )
+
 
     def sense_danger_ahead(self):
         self.get_ahead_location()
@@ -150,7 +155,16 @@ class SnakePlayer(list):
     def sense_wall_ahead(self):
         self.get_ahead_location()
         return( self.ahead[0] == 0 or self.ahead[0] == (YSIZE-1) or self.ahead[1] == 0 or self.ahead[1] == (XSIZE-1) )
+    
+    def sense_wall_right(self):
+        tile = self.get_right_location()
+        return( tile[0] == 0 or tile[0] == (YSIZE-1) or tile[1] == 0 or tile[1] == (XSIZE-1) )
+    
 
+    def sense_wall_2_ahead(self):
+        tile = self.get_ahead_2_location()
+        return( tile[0] == 0 or tile[0] == (YSIZE-1) or tile[1] == 0 or tile[1] == (XSIZE-1) )
+ 
     def sense_food_ahead(self):
         self.get_ahead_location()
         return self.ahead in self.food
@@ -185,6 +199,15 @@ class SnakePlayer(list):
 
     def if_wall_ahead(self, out1, out2):
         return partial(if_then_else, self.sense_wall_ahead, out1, out2)
+    
+    def if_wall_right(self, out1, out2):
+        return partial(if_then_else, self.sense_wall_right, out1, out2)
+    
+    def if_wall_2_ahead(self, out1, out2):
+        return partial(if_then_else, self.sense_wall_2_ahead, out1, out2)
+
+    def if_wall_2_left(self, out1, out2):
+        return partial(if_then_else, self.sense_wall_2_left, out1, out2)
 
     def if_food_ahead(self, out1, out2):
         return partial(if_then_else, self.sense_food_ahead, out1, out2)
@@ -197,7 +220,7 @@ class SnakePlayer(list):
 
     def if_danger_left(self, out1, out2):
         return partial(if_then_else, self.sense_danger_left, out1, out2)
-
+    
     def if_danger_ahead(self, out1, out2):
         return partial(if_then_else, self.sense_danger_ahead, out1, out2)
 
@@ -282,7 +305,6 @@ def runGame(individual):
         food = place_food(snake)
         timer = 0
 
-
         while not snake.snake_has_collided() and not timer == XSIZE * YSIZE:
             ## EXECUTE THE SNAKE'S BEHAVIOUR HERE ##
             if len(food)<NFOOD:
@@ -299,7 +321,7 @@ def runGame(individual):
         if snake.score==0:
             snake.score = -(abs(snake.body[0][0] - food[0][0]) + abs(snake.body[0][1] - food[0][1]))
         total_score += snake.score
-    return total_score/NUM_EVALS,
+    return total_score/NUM_EVALS
 
 def run_debug(individual):
     global snake
@@ -316,10 +338,12 @@ def run_debug(individual):
 
         while not snake.snake_has_collided() and not timer == XSIZE * YSIZE:
             ## EXECUTE THE SNAKE'S BEHAVIOUR HERE ##
-            print snake.direction, snake.body[0], snake.sense_danger_ahead()
+
             routine()
-            print snake.direction
+            
             snake.updatePosition()
+            print directions[snake.direction], snake.body[0], snake.sense_danger_ahead(), snake.sense_danger_right()
+            raw_input()
             if snake.body[0] in food:
                 snake.score += 1
                 food = place_food(snake)
@@ -378,7 +402,6 @@ def displayStrategyRun(individual):
         ## EXECUTE THE SNAKE'S BEHAVIOUR HERE ##
         routine()
         snake.updatePosition()
-
         if snake.body[0] in food:
             snake.score += 1
             for f in food:
@@ -419,13 +442,17 @@ def main():
     # pset.addPrimitive(prog3, 3)
 
     pset.addPrimitive(snake.if_food_ahead, 2, name="if_food_ahead")
-    # pset.addPrimitive(snake.if_wall_ahead, 2, name="if_wall_ahead")
+    pset.addPrimitive(snake.if_wall_ahead, 2, name="if_wall_ahead")
+    pset.addPrimitive(snake.if_wall_2_ahead, 2, name="if_wall_2_ahead")
+    pset.addPrimitive(snake.if_wall_right, 2, name="if_wall_right")
     # pset.addPrimitive(snake.if_tail_ahead, 2, name="if_tail_ahead")
 
     pset.addPrimitive(snake.if_danger_right, 2, name="if_danger_right")
     pset.addPrimitive(snake.if_danger_left, 2, name="if_danger_left")
     pset.addPrimitive(snake.if_danger_2_ahead, 2, name="if_danger_2_ahead")
     pset.addPrimitive(snake.if_danger_ahead, 2, name="if_danger_ahead")
+
+    pset.addPrimitive(snake.if_wall_2_left, 2, name="if_wall_2_left")
 
     pset.addPrimitive(snake.if_food_above, 2, name="if_food_above")
     pset.addPrimitive(snake.if_food_right, 2, name="if_food_right")
@@ -485,31 +512,27 @@ def main():
     random.seed()
     pop = toolbox.population(n=POP)
     hof = tools.HallOfFame(5)
-    pop, log = algorithms.eaSimple(
-        pop, toolbox, cxpb , mutpb, GENERATIONS, stats=mstats, halloffame=hof, verbose=True)
-    expr = tools.selBest(pop, 1)[0]
-    print expr
+    print "Opening file"
+    with open('snake.txt', 'r') as myfile:
+        print "opened file"
+        ind=myfile.read().replace('\n', '')
+        print "read file"
+        # print run_debug(ind)
+        print runGame(ind)
+        raw_input()
+        print displayStrategyRun(ind)
+       
 
-    inp = raw_input("display best? ")
-    if len(inp)>0:
-        displayStrategyRun(expr)
 
-
-    inp = raw_input("eval best? ")
-    if inp == "y" or inp =="Y":
-        NUM_EVALS = input("how many times?: ")
-        print "Evaluating: ", NUM_EVALS
-        print runGame(expr)
-    print type(expr)
-    nodes, edges, labels = gp.graph(expr)
-    g = pgv.AGraph(nodeSep=1.0)
-    g.add_nodes_from(nodes)
-    g.add_edges_from(edges)
-    g.layout(prog="dot")
-    for i in nodes:
-        n = g.get_node(i)
-        n.attr["label"] = labels[i]
-    g.draw("tree.pdf")
+        # nodes, edges, labels = gp.graph(ind)
+        # g = pgv.AGraph(nodeSep=1.0)
+        # g.add_nodes_from(nodes)
+        # g.add_edges_from(edges)
+        # g.layout(prog="dot")
+        # for i in nodes:
+        #     n = g.get_node(i)
+        #     n.attr["label"] = labels[i]
+        # g.draw("tree.pdf")
 
     return pop, mstats, hof
 

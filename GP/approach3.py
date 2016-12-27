@@ -13,6 +13,7 @@ from deap import creator
 from deap import tools
 from deap import gp
 import pygraphviz as pgv
+import multiprocessing
 
 S_UP, S_RIGHT, S_DOWN, S_LEFT = 0, 1, 2, 3
 XSIZE, YSIZE = 14, 14
@@ -22,8 +23,8 @@ INIT_SIZE = -1
 # THE FOOD (IF THE TAIL IS VERY LONG)
 NFOOD = 1
 GENERATIONS = 100
-POP = 1000
-NUM_EVALS = 1
+POP = 10000
+NUM_EVALS = 5
 cxpb = 0.5
 mutpb = 0.2
 
@@ -78,16 +79,16 @@ class SnakePlayer(list):
             tile[1]-=1
         return tile
 
-    def get_left_location(self):
+    def get_left_location(self, distance):
         tile = [self.body[0][0], self.body[0][1]]
         if self.direction == S_LEFT:
-            tile[0]+=1
+            tile[0]+=distance
         elif self.direction == S_UP:
-            tile[1]-=1
+            tile[1]-=distance
         elif self.direction == S_RIGHT:
-            tile[0]-=1
+            tile[0]-=distance
         elif self.direction == S_DOWN:
-            tile[1]+=1
+            tile[1]+=distance
         return tile
 
     def get_ahead_location(self):
@@ -143,8 +144,13 @@ class SnakePlayer(list):
         return self.is_tile_dangerous(tile)
 
     def sense_danger_left(self):
-        tile = self.get_left_location()
+        tile = self.get_left_location(1)
+        return self.is_tile_dangerous(tile)    
+
+    def sense_danger_2_left(self):
+        tile = self.get_left_location(2)
         return self.is_tile_dangerous(tile)
+
 
     def sense_danger_ahead(self):
         self.get_ahead_location()
@@ -204,6 +210,8 @@ class SnakePlayer(list):
 
     def if_danger_left(self, out1, out2):
         return partial(if_then_else, self.sense_danger_left, out1, out2)
+    def if_danger_2_left(self, out1, out2):
+        return partial(if_then_else, self.sense_danger_2_left, out1, out2)
 
     def if_danger_ahead(self, out1, out2):
         return partial(if_then_else, self.sense_danger_ahead, out1, out2)

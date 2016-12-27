@@ -42,8 +42,8 @@ INIT_SIZE = -1
 # THE FOOD (IF THE TAIL IS VERY LONG)
 NFOOD = 1
 NUM_EVALS = 3
-
-
+generations = 1000
+population = 400
 
 # <if>                ::= <expr> if <condition> else <expr>
 # <condition>         ::= snake.sense_danger_ahead()
@@ -99,27 +99,27 @@ ges = GrammaticalEvolution()
 
 ges.set_bnf(bnf)
 ges.set_genotype_length(start_gene_length=40,
-                        max_gene_length=500)
-ges.set_population_size(600)
+                        max_gene_length=100)
+ges.set_population_size(population)
 ges.set_wrap(True)
 
-ges.set_max_generations(500)
+ges.set_max_generations(generations)
 ges.set_fitness_type(MAX, 100.0)
 
 ges.set_max_program_length(5000)
 ges.set_timeouts(10, 1200)
 ges.set_fitness_fail(-100.0)
 
-ges.set_mutation_rate(.2)
+ges.set_mutation_rate(.3)
 ges.set_fitness_selections(
-    # FitnessElites(ges.fitness_list, .05),
+    FitnessElites(ges.fitness_list, .03),
     FitnessTournament(ges.fitness_list, tournament_size=2))
 ges.set_max_fitness_rate(.5)
 
 ges.set_crossover_rate(.5)
 ges.set_children_per_crossover(2)
 ges.set_mutation_type('m')
-ges.set_max_fitness_rate(.25)
+ges.set_max_fitness_rate(.99)
 
 ges.set_replacement_selections(
         ReplacementTournament(ges.fitness_list, tournament_size=3))

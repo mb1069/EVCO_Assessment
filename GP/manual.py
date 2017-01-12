@@ -441,21 +441,21 @@ def main():
     # pset.addPrimitive(prog2, 2)
     # pset.addPrimitive(prog3, 3)
 
-    pset.addPrimitive(snake.if_food_ahead, 2, name="if_food_ahead")
+    # pset.addPrimitive(snake.if_food_ahead, 2, name="if_food_ahead")
     pset.addPrimitive(snake.if_wall_ahead, 2, name="if_wall_ahead")
     pset.addPrimitive(snake.if_wall_2_ahead, 2, name="if_wall_2_ahead")
     pset.addPrimitive(snake.if_wall_right, 2, name="if_wall_right")
     # pset.addPrimitive(snake.if_tail_ahead, 2, name="if_tail_ahead")
 
-    pset.addPrimitive(snake.if_danger_right, 2, name="if_danger_right")
-    pset.addPrimitive(snake.if_danger_left, 2, name="if_danger_left")
-    pset.addPrimitive(snake.if_danger_2_ahead, 2, name="if_danger_2_ahead")
-    pset.addPrimitive(snake.if_danger_ahead, 2, name="if_danger_ahead")
+    # pset.addPrimitive(snake.if_danger_right, 2, name="if_danger_right")
+    # pset.addPrimitive(snake.if_danger_left, 2, name="if_danger_left")
+    # pset.addPrimitive(snake.if_danger_2_ahead, 2, name="if_danger_2_ahead")
+    # pset.addPrimitive(snake.if_danger_ahead, 2, name="if_danger_ahead")
 
     pset.addPrimitive(snake.if_wall_2_left, 2, name="if_wall_2_left")
 
-    pset.addPrimitive(snake.if_food_above, 2, name="if_food_above")
-    pset.addPrimitive(snake.if_food_right, 2, name="if_food_right")
+    # pset.addPrimitive(snake.if_food_above, 2, name="if_food_above")
+    # pset.addPrimitive(snake.if_food_right, 2, name="if_food_right")
 
     # pset.addPrimitive(snake.if_food_left, 2, name="if_food_left")
     # pset.addPrimitive(snake.if_food_down, 2, name="if_food_down")

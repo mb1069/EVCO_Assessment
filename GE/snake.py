@@ -105,7 +105,11 @@ class SnakePlayer(list):
         return self.is_tile_dangerous(tile)
 
     def sense_danger_left(self):
-        tile = self.get_left_location()
+        tile = self.get_left_location(1)
+        return self.is_tile_dangerous(tile)    
+
+    def sense_danger_2_left(self):
+        tile = self.get_left_location(2)
         return self.is_tile_dangerous(tile)
 
     def sense_danger_ahead(self):
@@ -128,17 +132,21 @@ class SnakePlayer(list):
         self.get_ahead_location()
         return self.ahead in self.body
 
-    def sense_food_above(self):
-        return self.food[0][0]<=self.body[0][0]
+    def sense_wall_ahead(self):
+        self.get_ahead_location()
+        return( self.ahead[0] == 0 or self.ahead[0] == (YSIZE-1) or self.ahead[1] == 0 or self.ahead[1] == (XSIZE-1) )
+    
+    def sense_wall_right(self):
+        tile = self.get_right_location()
+        return( tile[0] == 0 or tile[0] == (YSIZE-1) or tile[1] == 0 or tile[1] == (XSIZE-1) )
+    
+    def sense_wall_2_ahead(self):
+        tile = self.get_ahead_2_location()
+        return( tile[0] == 0 or tile[0] == (YSIZE-1) or tile[1] == 0 or tile[1] == (XSIZE-1) )
 
-    def sense_food_right(self):
-        return self.food[0][1]>=self.body[0][1]
-
-    def sense_food_below(self):
-        return not self.sense_food_above()
-
-    def sense_food_left(self):
-        return not self.sense_food_right()
+    def sense_wall_2_left(self):
+        tile = self.get_left_location(2)
+        return( tile[0] == 0 or tile[0] == (YSIZE-1) or tile[1] == 0 or tile[1] == (XSIZE-1) )
 
     def sense_moving_up(self):
         return self.direction == S_UP
@@ -153,15 +161,18 @@ class SnakePlayer(list):
         return self.direction == S_LEFT
 
 def run_game(snake):
-    S_UP, S_RIGHT, S_DOWN, S_LEFT = 0, 1, 2, 3
-    XSIZE = 14
-    YSIZE = 14
+
+
     total_score = 0
+    total_steps = 0
     for run in range(0,NUM_EVALS):
         snake._reset()
         food = place_food(snake)
         timer = 0
 
+        tour = set()
+        tours = 0
+        steps = 0 
         while not snake.snake_has_collided() and not timer == XSIZE * YSIZE:
             ## EXECUTE THE SNAKE'S BEHAVIOUR HERE ##
             snake.decide()
@@ -173,10 +184,16 @@ def run_game(snake):
             else:
                 snake.body.pop()
                 timer += 1  # timesteps since last eaten
-        # if snake.score==0:
-        #     snake.score = -(abs(snake.body[0][0] - food[0][0]) + abs(snake.body[0][1] - food[0][1]))
-        total_score += snake.score
-    return total_score/NUM_EVALS
+            steps+=1
+            tour.add(str(snake.body[0]))
+            if len(tour)==((XSIZE-2)*(YSIZE-2)):
+                tour.clear()
+                tours+=1
+        total_steps += steps
+        total_score += snake.score + (steps/100)
+    total_score/=NUM_EVALS
+    # return (max(len(tour)/((XSIZE-2)*(YSIZE-2)), tours), total_score/NUM_EVALS)
+    return (float(len(tour))/((XSIZE-2)*(YSIZE-2)))+tours + (total_score if total_score>5 else 0)
 
 
 def is_tile_empty(snake, food, tile):

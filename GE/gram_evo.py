@@ -42,7 +42,7 @@ INIT_SIZE = -1
 # THE FOOD (IF THE TAIL IS VERY LONG)
 NFOOD = 1
 NUM_EVALS = 3
-generations = 1000
+generations = 100
 population = 400
 
 # <if>                ::= <expr> if <condition> else <expr>
@@ -52,7 +52,9 @@ bnf =   """
 <expr>              ::= <terminal> | <if> 
 <if>                ::= (<expr> if <condition> else <expr>)
 <terminal>          ::= snake.turn_left() | snake.turn_right() | snake.go_straight()
-<condition>         ::= snake.sense_moving_left() | snake.sense_moving_down() | snake.sense_moving_up() | snake.sense_moving_right() | snake.sense_food_ahead() | snake.sense_danger_ahead() | snake.sense_food_above() | snake.sense_food_right() | snake.sense_danger_2_ahead()
+<condition>         ::= <direction> | <danger>
+<direction>         ::= snake.sense_moving_up() | snake.sense_moving_down() | snake.sense_moving_right() | snake.sense_moving_left()
+<danger>            ::= snake.sense_wall_ahead() | snake.sense_wall_right() | snake.sense_wall_2_ahead() | snake.sense_wall_2_left()
 <S>                 ::=
 from snake import SnakePlayer, run_game, run_debug, display_run
 S_UP, S_RIGHT, S_DOWN, S_LEFT = 0, 1, 2, 3
@@ -110,13 +112,13 @@ ges.set_max_program_length(5000)
 ges.set_timeouts(10, 1200)
 ges.set_fitness_fail(-100.0)
 
-ges.set_mutation_rate(.3)
+ges.set_mutation_rate(.4)
 ges.set_fitness_selections(
     FitnessElites(ges.fitness_list, .03),
     FitnessTournament(ges.fitness_list, tournament_size=2))
 ges.set_max_fitness_rate(.5)
 
-ges.set_crossover_rate(.5)
+ges.set_crossover_rate(.6)
 ges.set_children_per_crossover(2)
 ges.set_mutation_type('m')
 ges.set_max_fitness_rate(.99)
@@ -136,7 +138,7 @@ print
 
 print gene.compute_fitness()
 
-inp = raw_input("display best? ")
-if len(inp)>0:
-    tmp = compile(gene.get_program(), 'fakemodule', 'exec')
-    exec(tmp)
+# inp = raw_input("display best? ")
+# if len(inp)>0:
+tmp = compile(gene.get_program(), 'fakemodule', 'exec')
+exec(tmp)

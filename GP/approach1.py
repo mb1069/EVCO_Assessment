@@ -20,11 +20,11 @@ INIT_SIZE = -1
 # NOTE: YOU MAY NEED TO ADD A CHECK THAT THERE ARE ENOUGH SPACES LEFT FOR
 # THE FOOD (IF THE TAIL IS VERY LONG)
 NFOOD = 1
-GENERATIONS = 100
-POP = 1000
+GENERATIONS = 500
+POP = 10000
 NUM_EVALS = 3
-cxpb = 0.5
-mutpb = 0.2
+cxpb = 0.8
+mutpb = 0.1
 parsimony = 1.1
 
 def if_then_else(condition, out1, out2):
@@ -488,35 +488,36 @@ def main():
     pop, log = algorithms.eaSimple(
         pop, toolbox, cxpb , mutpb, GENERATIONS, stats=mstats, halloffame=hof, verbose=True)
     expr = tools.selBest(pop, 1)[0]
-    print expr
+    # print expr
 
-    inp = raw_input("display best? ")
-    if len(inp)>0:
-        displayStrategyRun(expr)
+    # inp = raw_input("display best? ")
+    # if len(inp)>0:
+    #     displayStrategyRun(expr)
 
 
-    inp = raw_input("eval best? ")
-    if inp == "y" or inp =="Y":
-        NUM_EVALS = input("how many times?: ")
-        print "Evaluating: ", NUM_EVALS
-        print runGame(expr)
-    print type(expr)
-    nodes, edges, labels = gp.graph(expr)
-    g = pgv.AGraph(nodeSep=1.0)
-    g.add_nodes_from(nodes)
-    g.add_edges_from(edges)
-    g.layout(prog="dot")
-    for i in nodes:
-        n = g.get_node(i)
-        n.attr["label"] = labels[i]
-    g.draw("tree.pdf")
+    # inp = raw_input("eval best? ")
+    # if inp == "y" or inp =="Y":
+    #     NUM_EVALS = input("how many times?: ")
+    #     print "Evaluating: ", NUM_EVALS
+    #     print runGame(expr)
+    # print type(expr)
+
+    # nodes, edges, labels = gp.graph(expr)
+    # g = pgv.AGraph(nodeSep=1.0)
+    # g.add_nodes_from(nodes)
+    # g.add_edges_from(edges)
+    # g.layout(prog="dot")
+    # for i in nodes:
+    #     n = g.get_node(i)
+    #     n.attr["label"] = labels[i]
+    # g.draw("tree.pdf")
 
     return mstats.compile(pop), mstats, hof
 
 
 if __name__ == "__main__":
     
-    for x in range(0,1):
+    for x in range(0,10):
         record = main()[0]
         print record
         row = (record['fitness']['avg'], record['fitness']['max'], record['fitness']['std'], record['size']['avg'], record['size']['max'], record['size']['std'], "\r")

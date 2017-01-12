@@ -20,9 +20,9 @@ INIT_SIZE = -1
 # NOTE: YOU MAY NEED TO ADD A CHECK THAT THERE ARE ENOUGH SPACES LEFT FOR
 # THE FOOD (IF THE TAIL IS VERY LONG)
 NFOOD = 1
-GENERATIONS = 1
-POP = 10000
-NUM_EVALS = 5
+GENERATIONS = 100
+POP = 1000
+NUM_EVALS = 3
 cxpb = 0.5
 mutpb = 0.2
 parsimony = 1.1
@@ -459,8 +459,8 @@ def main():
     toolbox.register("compile", gp.compile, pset=pset)
 
     toolbox.register("evaluate", runGame)
-    # toolbox.register("select", tools.selTournament, tournsize=2)
-    toolbox.register("select", tools.selDoubleTournament, fitness_size=3, parsimony_size=parsimony, fitness_first=True)
+    toolbox.register("select", tools.selTournament, tournsize=2)
+    # toolbox.register("select", tools.selDoubleTournament, fitness_size=3, parsimony_size=parsimony, fitness_first=True)
     toolbox.register("mate", gp.cxOnePoint)
     toolbox.register("expr_mut", gp.genHalfAndHalf, min_=1, max_=3, pset=pset)
     toolbox.register("mutate", gp.mutUniform, expr=toolbox.expr_mut, pset=pset)
@@ -511,7 +511,16 @@ def main():
         n.attr["label"] = labels[i]
     g.draw("tree.pdf")
 
-    return pop, mstats, hof
+    return mstats.compile(pop), mstats, hof
+
 
 if __name__ == "__main__":
-    main()
+    
+    for x in range(0,1):
+        record = main()[0]
+        print record
+        row = (record['fitness']['avg'], record['fitness']['max'], record['fitness']['std'], record['size']['avg'], record['size']['max'], record['size']['std'], "\r")
+        fd = open('approach1results.csv', 'a')
+        fd.write(",".join(map(str, row)))
+        fd.close()
+    

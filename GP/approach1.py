@@ -10,7 +10,6 @@ from deap import base
 from deap import creator
 from deap import tools
 from deap import gp
-import pygraphviz as pgv
 import multiprocessing
 
 S_UP, S_RIGHT, S_DOWN, S_LEFT = 0, 1, 2, 3
@@ -20,12 +19,12 @@ INIT_SIZE = -1
 # NOTE: YOU MAY NEED TO ADD A CHECK THAT THERE ARE ENOUGH SPACES LEFT FOR
 # THE FOOD (IF THE TAIL IS VERY LONG)
 NFOOD = 1
-GENERATIONS = 500
+GENERATIONS = 150
 POP = 10000
 NUM_EVALS = 3
 cxpb = 0.8
 mutpb = 0.1
-parsimony = 1.4
+parsimony = 1.7
 
 def if_then_else(condition, out1, out2):
     out1() if condition() else out2()

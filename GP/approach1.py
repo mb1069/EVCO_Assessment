@@ -24,7 +24,7 @@ POP = 10000
 NUM_EVALS = 3
 cxpb = 0.8
 mutpb = 0.1
-parsimony = 1.7
+parsimony = 1.6
 
 def if_then_else(condition, out1, out2):
     out1() if condition() else out2()

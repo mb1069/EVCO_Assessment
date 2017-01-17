@@ -10,9 +10,7 @@ from deap import base
 from deap import creator
 from deap import tools
 from deap import gp
-import pygraphviz as pgv
 import multiprocessing
-from scoop import futures
 
 S_UP, S_RIGHT, S_DOWN, S_LEFT = 0, 1, 2, 3
 XSIZE, YSIZE = 14, 14
@@ -21,11 +19,11 @@ INIT_SIZE = -1
 # NOTE: YOU MAY NEED TO ADD A CHECK THAT THERE ARE ENOUGH SPACES LEFT FOR
 # THE FOOD (IF THE TAIL IS VERY LONG)
 NFOOD = 1
-GENERATIONS = 100
+GENERATIONS = 5
 POP = 10000
 NUM_EVALS = 3
-cxpb = 0.8
-mutpb = 0.1
+cxpb = 0.0
+mutpb = 0.8
 parsimony = 1.1
 
 def if_then_else(condition, out1, out2):
@@ -449,8 +447,8 @@ def main():
     toolbox = base.Toolbox()
 
 
-    # pool = multiprocessing.Pool()
-    toolbox.register("map", futures.map)
+    pool = multiprocessing.Pool()
+    toolbox.register("map", pool.map)
 
 
     toolbox.register("expr", gp.genHalfAndHalf, pset=pset, min_=2, max_=4)

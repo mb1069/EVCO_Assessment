@@ -1,0 +1,14 @@
+{
+	"folders":
+	[
+		{
+			"path": "."
+		}
+	],
+
+    "settings": {
+        "TEXroot": "report.tex",
+        "output_directory": "out",
+        "builder": "basic"
+    }
+}

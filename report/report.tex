@@ -1,0 +1,150 @@
+
+\documentclass[british,10pt,a4paper]{article}
+\usepackage[british]{babel}
+\usepackage[margin=1in, bottom=0.75in, top=0.75in, footskip=0.25in]{geometry}
+\usepackage[titletoc]{appendix}
+\usepackage{fancyhdr}
+\usepackage{mathtools}
+\usepackage[numbers]{natbib}
+\usepackage{filecontents}
+\usepackage{pgfplots, pgfplotstable}
+    \pgfplotsset{%
+    	% every tick label/.append style={scale=1.5},
+        compat=newest,%
+        /pgf/number format/use comma,%
+        /pgf/number format/1000 sep={\,},%
+        /pgf/number format/min exponent for 1000 sep=4}
+\usepgfplotslibrary{statistics}
+\usepackage{hyperref}
+\usepackage{booktabs}
+\usepackage{wrapfig}
+\usepackage{listings}
+\usepackage{color}
+\usepackage{graphicx}
+\usepackage{siunitx}
+\usepackage[parfill]{parskip}
+\usepackage{tikz} % To generate the plot from csv
+
+\pgfplotsset{compat=newest} % Allows to place the legend below plot
+\usepgfplotslibrary{units} % Allows to enter the units nicely
+
+\graphicspath{ {images/} }
+
+\setcounter{secnumdepth}{2}
+\setcounter{tocdepth}{2}
+\renewcommand{\arraystretch}{1.2}
+\renewcommand\thesection{\arabic{section}}
+\renewcommand\thesubsection{\roman{subsection}.}
+\renewcommand\thesubsubsection{}
+\newcommand*{\Appendixautorefname}{appendix}
+\pagestyle{fancy}
+\fancyhf{}
+\renewcommand{\headrulewidth}{0pt}
+\lfoot{Exam no: Y0076159}
+\cfoot{\thepage}
+\lstset{
+  columns=fixed,
+  breaklines=true,
+  basicstyle=\ttfamily\footnotesize
+  }
+
+\usepackage[nottoc]{tocbibind}
+\usepackage{csvsimple}
+
+\begin{document}
+\title{EVCO Open Assessment}
+\author{Exam no: Y0076159}
+\date{\today}
+\maketitle
+\tableofcontents
+\listoffigures
+\clearpage
+\section{Introduction \& Problem Definition}
+\subsection{}
+\section{Literature review}
+\subsection{Genetic algorithms}
+- GA
+- GP
+- GE
+- Neural networks
+- Co-evolution
+
+\subsection{Applications of genetic programming to game A.I}
+
+\subsection{General}
+General research 
+GP AI study 
+\(https://www.gamedev.net/resources/_/technical/artificial-intelligence/application-of-genetic-programming-to-the-snake-r1175\) 
+
+\subsection{Genetic Algorithms for snake}
+\citet{Ehlis2000-sz} has provided the only comprehensive article specific to the applications of genetic algorithms to Snake. The definitions of the problem diverge from our assessment in a few non-essential ways: snake movements can be inheritely defined relative to the snake's current direction (i.e: a turn\_right and turn\_left terminal is defined), and the playing field of the game is a larger rectangle than the 12\*12 field. In all other respects, \citeauthor{Ehlis2000-sz} provides
+an overview of a method which functions on the same game as our case. Given this, we will first analyse this approach to the problem, and aim to build an improvement both in terms of computational performance and quality of the solution. \newline
+
+A generic set of terminals allowing the snake to navigate the world is defined: Forward, Left and Right. The latter two allow the snake to make a change of direction relative to it's current heading, whilst the first argument does not affect the heading. The relative movement provided by the two turn operators does allow for a simpler evolution, as implementing an equivalent relative turn using absolute directions requires a significant number of operators, as we will later discuss [CITE DESIGN SECTION] \newline
+
+Non terminals can be categorised as either food sensing (ifFoodAhead, ifFoodUp, ifFoodRight) or danger sensing (ifDangerAhead, ifDangerRight, ifDangerLeft, ifDangerTwoAhead). The use of absolute food sensing (ifFoodUp, ifFoodRight) does however require the addition of 4 sensing methods to orient the snake, allowing it to undertake the correct action given the context. This introduces some complexity into the set of operators, potentially limiting the efficiency of the algorithm.\newline
+
+These sets of operators therefore define a generally greedy behaviour: the snake may be progressing towards the food, either at the root of the decision tree or further down once a given situation occurs (such as the 'wall-slitherer' describes in \cite{Ehlis2000-sz}). This evokes a classical approach to the game, similar to what we could expect from the average player\'s strategy. However, given that the last move of a game-winning situation would involve fully covering the map, a greedy approach would need to be very attentive to surrounding dangers to correctly navigate a path to the wall. As such, the difficulty a greedier snake may have in adapting to every potential situation may be the cause for why the algorithm may not produce optimal solutions: an example situation is stated by \citeauthor{Ehlis2000-sz}. This issue forms a basis for the design as later explained. \newline
+
+Additional details of the algorithm are however lacking: a large population of 10000 individuals is evolved for 500 generations; the large population is potentially a couterweight to the lack of mutation, as unique genomes are created at the start of the evolution rather than during it; this most likely results in an equivalent effect. with a maximum tree size of 150 nodes to limit bloating. Crossover probability is stated as .10 for leaves, 0.80 for nodes, with a mutation probability of 0, in addition to the use of primed populations from previously unsuccesful runs. Additional details concerning which mutation or crossover functions were used are omitted, and reasonable assumptions of these are discussed in \autoref{subsec:impl} to evaluate the method. The algorithm did however account for the randomisation of food placement, mitigating it by evaluating each individual over multiple runs per generation; this was also considered in our algorithm, as we will later discuss.\newline
+
+The proposed solution results in the creation of a game-winning decision tree (which scores the maximal 211 points). This algorithm was re-implemented to establish a benchmark for our research, revealing a significant requirement in computational time, as discussed in \autoref{subsec:impl}.
+
+
+\subsection{Implementation, assumptions and results}
+\label{subsec:impl}
+In order to obtain benchmark fitness values, tree sizes and computational times against which to evaluate our new algorithms, the algorithm develoved by \citeauthor{Ehlis2000-sz} was implemented using the Python DEAP \cite{deap} package; the code for this can be found in \autoref{app:approach1}. \newline
+The algorithm was ran 20 times in order to obtain a reliable statistic of it's performance, but given the extensive computation time (20 runs at 150 generations required approximately 3 days to run using a 32 core linux machine with 256GB of ram) required for such a large population, each run was capped at 150 generations, and was executed using the python multiprocessing module for parallel evaluation of individuals. The results of this can be extrapolated to some extent, but we will compare further algorithms on the results they achieve on the same number of generations or less. Some assumptions regarding the type of mutation (uniform tree insertion was utilised, which did not permit a variation in the mutation probability between leaf nodes and non-leaf nodes) and crossover was set with a probability of 0.0. Finally, we assumed that the fitness tournament was used to drive the fitness upwards: this was implemented with a size of 2, and that a standard evolution algorithm was used (DEAP's eaSimple, which "takes a population and evolves it in place using varAnd()).\newline
+\begin{figure}
+\centering
+\resizebox {!} {7cm} {
+	\begin{tikzpicture}[font=\LARGE]
+	    \begin{axis}[xlabel=Food Eaten, ylabel=Count, ybar,xtick=,width=\textwidth]
+
+	    \addplot+[
+	    	hist={
+	    		data=x,
+	    		bins=14,
+	    		data min = 0,
+	    		data max = 134
+	    	}]
+	            file [y index=0]  {data/approach1.csv};
+	\end{axis}
+	\end{tikzpicture}
+}
+\caption{Histogram of best individuals from \citeauthor{Ehlis2000-sz}'s algorithm, 150 generations}
+\label{fig:approach1}
+\end{figure}
+
+As seen in \autoref{fig:approach1}, the algorithm produced 8 optimal solutions (a maximal score of 133), and an average best individual of 95.38 (std: 44.24). This was achieved using an average tree size of 92 nodes. One should note that the algorithm only has a 40\% success rate in produce game-beating A.I; this is certainly related to the shortening of the algorithm by 350 generations, and the algorithm may therefore be more sucessful than the results above. Nevertheless, we can establish a benchmark against which we can compare future algorithms, keeping in mind the scale of resources provided to the algorithms is limited given available computing power. This can most easily be described as an average best score of 95.38 (std: 44.24), given 150 generations with a population of 10 000, with an average tree size of 92.
+
+\section{Testing \& Design methodology}
+In order to evaluate the effects of operators or fitness functions, each candidate fitness function will be evaluated 20 times, with a consistant configuration: a population of 300 individuals evolved over 150 generations. We will aim to create an algorithm which requires less computational power, and produces optimal results more consistently with a smaller population and tree size. Fitness functions will be evaluated using the same algorithm (eaSimple), although a later comparison of algorithms will be run. Finally the optimal mutation and crossover probabilities will be found by iterating combinations of them with the most promising algorithm.
+
+\subsection{Discussion}
+\section{Design \& implementation}
+\subsection{Strategy}
+
+\subsection{Fitness function}
+- As we cannot implement a turn\_left and turn\_right function, detection of the direction of motion (ifMovingUp) is necessary
+- Why no food sensing?
+
+\subsection{Strategy}
+Cannot use steps between food picked up as food placement is too random to produce useful results.
+\clearpage
+\bibliographystyle{IEEEtranSN}
+\bibliography{references}
+\clearpage
+\begin{appendices}
+
+	\section{Benchmark algorithm}\label{app:approach1}
+	Based on the design document by \citet{Ehlis2000-sz}. \newline
+	\lstinputlisting[language=Python]{../GP/approach1.py}
+  	\clearpage	
+
+  	\section{Stream.py}\label{app:stream}
+  	\clearpage
+
+\end{appendices}
+\clearpage
+\end{document}

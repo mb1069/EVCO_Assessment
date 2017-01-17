@@ -1,0 +1,14 @@
+\select@language {british}
+\contentsline {section}{List of Figures}{1}{section*.2}
+\contentsline {section}{\numberline {1}Introduction \& Problem Definition}{2}{section.1}
+\contentsline {subsection}{\numberline {i.}}{2}{subsection.1.1}
+\contentsline {section}{\numberline {2}Existing work}{2}{section.2}
+\contentsline {subsection}{\numberline {i.}General}{2}{subsection.2.1}
+\contentsline {subsection}{\numberline {ii.}Genetic Algorithms for snake}{2}{subsection.2.2}
+\contentsline {subsection}{\numberline {iii.}Implementation, assumptions and results}{3}{subsection.2.3}
+\contentsline {section}{\numberline {3}Testing \& Design methodology}{3}{section.3}
+\contentsline {subsection}{\numberline {i.}Discussion}{4}{subsection.3.1}
+\contentsline {section}{\numberline {4}Design and implementation}{4}{section.4}
+\contentsline {section}{Bibliography}{5}{section*.3}
+\contentsline {section}{Appendix \numberline {A}Benchmark algorithm}{6}{Appendix.a.A}
+\contentsline {section}{Appendix \numberline {B}Stream.py}{13}{Appendix.a.B}

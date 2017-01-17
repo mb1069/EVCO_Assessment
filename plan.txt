@@ -1,3 +1,8 @@
+Lit review:
+Snake AI works, but is not as successful as advertised (see approach1.py)
+
+
+
 To try:
 3 tiered fitness function:
 - First get a snake that explores every tile

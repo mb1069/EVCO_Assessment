@@ -66,11 +66,8 @@ def move():
 snake.decide = move
 fitness = run_game(snake)
 
-try:
-    self.set_bnf_variable('<fitness>', fitness)
-except NameError:
-    display_run(snake)
-    pass
+self.set_bnf_variable('<fitness>', fitness)
+
         """
 
 # bnf =   """

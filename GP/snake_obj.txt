@@ -1,0 +1,19 @@
+if_moving_right(
+	if_wall_right(
+		go_up,
+		go_straight
+	),
+	if_moving_down(
+		if_wall_down(
+			go_right,
+			go_straight
+		),
+		if_moving_left(
+			if_wall_2_left(
+				if_wall_up(go_straight,go_up),
+				if_wall_left(go_down,go_straight)
+			),
+			if_wall_right(go_left,go_right)
+		)
+	)
+)

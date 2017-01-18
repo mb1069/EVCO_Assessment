@@ -15,10 +15,7 @@ if_moving_right(
 				go_down,
 				go_straight
 			), 
-			if_moving_up(
-				if_wall_ahead(go_left, go_straight),
-				go_straight
-			)
+			if_wall_ahead(go_left, go_straight),
 		)
 	)
 )

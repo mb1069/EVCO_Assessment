@@ -12,7 +12,7 @@ from deap import base
 from deap import creator
 from deap import tools
 from deap import gp
-import pygraphviz as pgv
+# import pygraphviz as pgv
 import multiprocessing
 import sys
 
@@ -23,7 +23,7 @@ INIT_SIZE = -1
 # NOTE: YOU MAY NEED TO ADD A CHECK THAT THERE ARE ENOUGH SPACES LEFT FOR
 # THE FOOD (IF THE TAIL IS VERY LONG)
 NFOOD = 1
-GENERATIONS = 200
+GENERATIONS = 150
 POP = 1000
 NUM_EVALS = 5
 cxpb = 0.8
@@ -240,7 +240,6 @@ class SnakePlayer(list):
     def sense_moving_left(self):
         return self.direction == S_LEFT
 
-
     def sense_against_wall(self):
         tile = self.body[0]
         return (tile[0] in [1, XSIZE-1]) or (tile[1] in [1, XSIZE-1])
@@ -420,8 +419,8 @@ def evaluate(individual, evals):
             else:
                 snake.body.pop()
                 timer += 1  # timesteps since last eaten
-        total_score += snake.score + (steps/100)
-    avg_score = total_score/NUM_EVALS
+        total_score += snake.score
+    avg_score = total_score/evals
     return avg_score
 
 
@@ -587,14 +586,12 @@ def main():
         expr = tools.selBest(pop, 1)[0]
         print expr
 
-        inp = raw_input("display best? ")
-        if len(inp)>0:
-            displayStrategyRun(expr)
-
-
-        NUM_EVALS = 1000
-        val = evaluate(expr)
-        print "Evaluating: ", str(NUM_EVALS), "times, average score: ", str(val)
+        # inp = raw_input("display best? ")
+        # if len(inp)>0:
+        #     displayStrategyRun(expr)
+        evals = 100
+        val = evaluate(expr, evals)
+        print "Evaluating: ", str(evals), "times, average score: ", str(val)
 
         # nodes, edges, labels = gp.graph(expr)
         # g = pgv.AGraph(nodeSep=1.0)
@@ -609,7 +606,7 @@ def main():
         pool.terminate()
         pool.join()
         raise KeyboardInterrupt
-    return mstats.compile(pop), mstats, val
+    return mstats.compile(pop), val
 
 if __name__ == "__main__":
 
@@ -621,8 +618,8 @@ if __name__ == "__main__":
             out = main()
             record = out[0]
             print record
-            row = (record['fitness']['avg'], record['fitness']['max'], record['fitness']['std'], record['size']['avg'], record['size']['max'], record['size']['std'], out[2], "\r")
-            fd = open('approach3results_no_turn.csv', 'a')
+            row = (record['fitness']['avg'], record['fitness']['max'], record['fitness']['std'], record['size']['avg'], record['size']['max'], record['size']['std'], out[1], "\r")
+            fd = open('approach3_greedy_results.csv', 'a')
             fd.write(",".join(map(str, row)))
             fd.close()
     except KeyboardInterrupt:

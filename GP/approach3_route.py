@@ -12,8 +12,9 @@ from deap import base
 from deap import creator
 from deap import tools
 from deap import gp
-import pygraphviz as pgv
+# import pygraphviz as pgv
 import multiprocessing
+import sys
 
 S_UP, S_RIGHT, S_DOWN, S_LEFT = 0, 1, 2, 3
 XSIZE, YSIZE = 14, 14
@@ -22,11 +23,12 @@ INIT_SIZE = -1
 # NOTE: YOU MAY NEED TO ADD A CHECK THAT THERE ARE ENOUGH SPACES LEFT FOR
 # THE FOOD (IF THE TAIL IS VERY LONG)
 NFOOD = 1
-GENERATIONS = 100
+GENERATIONS = 150
 POP = 1000
-NUM_EVALS = 3
-cxpb = 0.5
-mutpb = 0.3
+NUM_EVALS = 5
+cxpb = 0.8
+mutpb = 0.5
+parsimony = 1.05
 
 def if_then_else(condition, out1, out2):
     out1() if condition() else out2()
@@ -67,16 +69,16 @@ class SnakePlayer(list):
     def is_tile_dangerous(self, tile):
         return (tile in self.body) or (tile[1]==0) or (tile[1]==XSIZE-1) or (tile[0]==0) or (tile[0]==YSIZE-1)
 
-    def get_right_location(self):
+    def get_right_location(self, distance):
         tile = [self.body[0][0], self.body[0][1]]
         if self.direction == S_LEFT:
-            tile[0]-=1
+            tile[0]-=distance
         elif self.direction == S_UP:
-            tile[1]+=1
+            tile[1]+=distance
         elif self.direction == S_RIGHT:
-            tile[0]+=1
+            tile[0]+=distance
         elif self.direction == S_DOWN:
-            tile[1]-=1
+            tile[1]-=distance
         return tile
 
     def get_left_location(self, distance):
@@ -121,6 +123,18 @@ class SnakePlayer(list):
     def go_straight(self):
         pass
 
+    def changeDirectionUp(self):
+        self.direction = S_UP
+
+    def changeDirectionRight(self):
+        self.direction = S_RIGHT
+
+    def changeDirectionDown(self):
+        self.direction = S_DOWN
+
+    def changeDirectionLeft(self):
+        self.direction = S_LEFT
+
     def snake_has_collided(self):
         self.hit = False
         if self.body[0][0] == 0 or self.body[0][0] == (
@@ -139,13 +153,21 @@ class SnakePlayer(list):
         return (self.hit)
 
     def sense_danger_right(self):
-        tile = self.get_right_location()
+        tile = self.get_right_location(1)
+        return self.is_tile_dangerous(tile)
+
+    def sense_danger_2_right(self):
+        tile = self.get_right_location(2)
         return self.is_tile_dangerous(tile)
 
     def sense_danger_left(self):
         tile = self.get_left_location(1)
         return self.is_tile_dangerous(tile)    
-
+    
+    def sense_danger_2_left(self):
+        tile = self.get_left_location(1)
+        return self.is_tile_dangerous(tile)    
+    
     def sense_danger_2_left(self):
         tile = self.get_left_location(2)
         return self.is_tile_dangerous(tile)
@@ -175,7 +197,11 @@ class SnakePlayer(list):
         return( self.ahead[0] == 0 or self.ahead[0] == (YSIZE-1) or self.ahead[1] == 0 or self.ahead[1] == (XSIZE-1) )
     
     def sense_wall_right(self):
-        tile = self.get_right_location()
+        tile = self.get_right_location(1)
+        return( tile[0] == 0 or tile[0] == (YSIZE-1) or tile[1] == 0 or tile[1] == (XSIZE-1) )
+
+    def sense_wall_left(self):
+        tile = self.get_left_location(1)
         return( tile[0] == 0 or tile[0] == (YSIZE-1) or tile[1] == 0 or tile[1] == (XSIZE-1) )
     
     def sense_wall_2_ahead(self):
@@ -184,6 +210,10 @@ class SnakePlayer(list):
 
     def sense_wall_2_left(self):
         tile = self.get_left_location(2)
+        return( tile[0] == 0 or tile[0] == (YSIZE-1) or tile[1] == 0 or tile[1] == (XSIZE-1) )
+
+    def sense_wall_2_right(self):
+        tile = self.get_right_location(2)
         return( tile[0] == 0 or tile[0] == (YSIZE-1) or tile[1] == 0 or tile[1] == (XSIZE-1) )
 
     def sense_food_above(self):
@@ -210,17 +240,28 @@ class SnakePlayer(list):
     def sense_moving_left(self):
         return self.direction == S_LEFT
 
+
+    def sense_against_wall(self):
+        tile = self.body[0]
+        return (tile[0] in [1, XSIZE-1]) or (tile[1] in [1, XSIZE-1])
+
     def if_wall_ahead(self, out1, out2):
         return partial(if_then_else, self.sense_wall_ahead, out1, out2)
 
     def if_wall_right(self, out1, out2):
         return partial(if_then_else, self.sense_wall_right, out1, out2)
     
+    def if_wall_left(self, out1, out2):
+        return partial(if_then_else, self.sense_wall_left, out1, out2)
+    
     def if_wall_2_ahead(self, out1, out2):
         return partial(if_then_else, self.sense_wall_2_ahead, out1, out2)
 
     def if_wall_2_left(self, out1, out2):
-        return partial(if_then_else, self.sense_wall_2_left, out1, out2)
+        return partial(if_then_else, self.sense_wall_2_left, out1, out2)    
+
+    def if_wall_2_right(self, out1, out2):
+        return partial(if_then_else, self.sense_wall_2_right, out1, out2)
 
     def if_food_ahead(self, out1, out2):
         return partial(if_then_else, self.sense_food_ahead, out1, out2)
@@ -230,9 +271,13 @@ class SnakePlayer(list):
 
     def if_danger_right(self, out1, out2):
         return partial(if_then_else, self.sense_danger_right, out1, out2)
+    
+    def if_danger_2_right(self, out1, out2):
+        return partial(if_then_else, self.sense_danger_right, out1, out2)
 
     def if_danger_left(self, out1, out2):
         return partial(if_then_else, self.sense_danger_left, out1, out2)
+
     def if_danger_2_left(self, out1, out2):
         return partial(if_then_else, self.sense_danger_2_left, out1, out2)
 
@@ -265,6 +310,10 @@ class SnakePlayer(list):
 
     def if_moving_left(self, out1, out2):
         return partial(if_then_else, self.sense_moving_left, out1, out2)
+
+    def if_against_wall(self, out1, out2):
+        return partial(if_then_else, self.sense_against_wall, out1, out2)
+
 
 def is_tile_empty(snake, food, tile):
     return not ((tile in snake.body) or (tile in food))
@@ -306,24 +355,22 @@ def place_food(snake):
     return (food)
 
 
-
-
 def runGame(individual):
     global snake
     global pset
 
     routine = gp.compile(individual, pset)
 
-    total_score = 0
-    total_steps = 0
+    total_score = 0.0
+    total_steps = 0.0
     for run in range(0,NUM_EVALS):
         snake._reset()
         food = place_food(snake)
         timer = 0
 
         tour = set()
-        tours = 0
-        steps = 0 
+        # tours = 0
+        steps = 0.0
         while not snake.snake_has_collided() and not timer == XSIZE * YSIZE:
             ## EXECUTE THE SNAKE'S BEHAVIOUR HERE ##
             routine()
@@ -336,36 +383,35 @@ def runGame(individual):
                 snake.body.pop()
                 timer += 1  # timesteps since last eaten
             steps+=1
-            tour.add(str(snake.body[0]))
-            if len(tour)==((XSIZE-2)*(YSIZE-2)):
-                tour.clear()
-                tours+=1
+            # tour.add(str(snake.body[0]))
+            # if len(tour)==((XSIZE-2)*(YSIZE-2)):
+            #     tour.clear()
+            #     tours+=1
         total_steps += steps
         total_score += snake.score + (steps/100)
+        if snake.score>130:
+            print snake.score
     avg_score = total_score/NUM_EVALS
-    coverage = float(len(tour))/((XSIZE-2)*(YSIZE-2))
-    # return coverage, (avg_score if coverage>0.99 else 0),
-    return (float(len(tour))/((XSIZE-2)*(YSIZE-2))), (avg_score if avg_score>5 else 0),
-    # return (0, avg_score)
+    avg_steps = total_steps/(NUM_EVALS*100)
+    # coverage = float(len(tour))/((XSIZE-2)*(YSIZE-2))
+    return avg_steps + (avg_score if avg_score>5 else 0),
 
-def run_debug(individual):
+
+def evaluate(individual, evals):
     global snake
     global pset
 
     routine = gp.compile(individual, pset)
 
-    total_score = 0
-    for run in range(0,NUM_EVALS):
+    total_score = 0.0
+    for run in range(0, evals):
         snake._reset()
         food = place_food(snake)
         timer = 0
 
-
         while not snake.snake_has_collided() and not timer == XSIZE * YSIZE:
             ## EXECUTE THE SNAKE'S BEHAVIOUR HERE ##
-            print snake.direction, snake.body[0], snake.sense_danger_ahead()
             routine()
-            print snake.direction
             snake.updatePosition()
             if snake.body[0] in food:
                 snake.score += 1
@@ -374,17 +420,9 @@ def run_debug(individual):
             else:
                 snake.body.pop()
                 timer += 1  # timesteps since last eaten
-        if snake.score==0:
-            snake.score = -(abs(snake.body[0][0] - food[0][0]) + abs(snake.body[0][1] - food[0][1]))
         total_score += snake.score
-
-
-    collided = snake.snake_has_collided()
-    hitBounds = snake.body[0][0] == 0 or snake.body[0][0] == (
-                    YSIZE - 1) or snake.body[0][1] == 0 or snake.body[0][1] == (XSIZE - 1)
-    print "Collided: ", collided
-    print "Hit wall: ", hitBounds
-    return total_score/NUM_EVALS,
+    avg_score = total_score/evals
+    return avg_score
 
 
 
@@ -403,7 +441,7 @@ def displayStrategyRun(individual):
     curses.curs_set(0)
     win.border(0)
     win.nodelay(1)
-    win.timeout(120)
+    win.timeout(30)
 
     snake._reset()
     food = place_food(snake)
@@ -463,12 +501,15 @@ def main():
 # Other crap
 
     # pset.addPrimitive(snake.if_food_ahead, 2, name="if_food_ahead")
-    # pset.addPrimitive(snake.if_tail_ahead, 2, name="if_tail_ahead")
+    pset.addPrimitive(snake.if_tail_ahead, 2, name="if_tail_ahead")
 
-    # pset.addPrimitive(snake.if_danger_right, 2, name="if_danger_right")
-    # pset.addPrimitive(snake.if_danger_left, 2, name="if_danger_left")
-    # pset.addPrimitive(snake.if_danger_2_ahead, 2, name="if_danger_2_ahead")
-    # pset.addPrimitive(snake.if_danger_ahead, 2, name="if_danger_ahead")
+    pset.addPrimitive(snake.if_danger_right, 2, name="if_danger_right")
+    pset.addPrimitive(snake.if_danger_2_right, 2, name="if_danger_2_right")
+    pset.addPrimitive(snake.if_danger_left, 2, name="if_danger_left")
+    pset.addPrimitive(snake.if_danger_2_left, 2, name="if_danger_2_left")
+    pset.addPrimitive(snake.if_danger_ahead, 2, name="if_danger_ahead")
+    pset.addPrimitive(snake.if_danger_2_ahead, 2, name="if_danger_2_ahead")
+    pset.addPrimitive(snake.if_against_wall, 2, name="if_against_wall")
 
     # pset.addPrimitive(snake.if_food_above, 2, name="if_food_above")
     # pset.addPrimitive(snake.if_food_right, 2, name="if_food_right")
@@ -476,47 +517,53 @@ def main():
     # pset.addPrimitive(snake.if_food_left, 2, name="if_food_left")
     # pset.addPrimitive(snake.if_food_down, 2, name="if_food_down")
 
-
+    # pset.addPrimitive(snake.if_wall_2_right, 2, name="if_wall_2_right")
+    # pset.addPrimitive(snake.if_wall_left, 2, name="if_wall_left")
 
 # Necessary for fully functioning solutions
+    
+    # pset.addPrimitive(snake.if_wall_ahead, 2, name="if_wall_ahead")
+    # pset.addPrimitive(snake.if_wall_2_ahead, 2, name="if_wall_2_ahead")
+    # pset.addPrimitive(snake.if_wall_right, 2, name="if_wall_right")
 
-    pset.addPrimitive(snake.if_wall_ahead, 2, name="if_wall_ahead")
-    pset.addPrimitive(snake.if_wall_2_ahead, 2, name="if_wall_2_ahead")
-    pset.addPrimitive(snake.if_wall_right, 2, name="if_wall_right")
-
-    pset.addPrimitive(snake.if_wall_2_left, 2, name="if_wall_2_left")
+    # pset.addPrimitive(snake.if_wall_2_left, 2, name="if_wall_2_left")
 
     pset.addPrimitive(snake.if_moving_up, 2, name="if_moving_up")
     pset.addPrimitive(snake.if_moving_right, 2, name="if_moving_right")
     pset.addPrimitive(snake.if_moving_down, 2, name="if_moving_down")
     pset.addPrimitive(snake.if_moving_left, 2, name="if_moving_left")
 
-    pset.addTerminal(snake.turn_right, name="turn_right")
-    pset.addTerminal(snake.turn_left, name="turn_left")
+    pset.addTerminal(snake.changeDirectionUp, name="go_up")
+    pset.addTerminal(snake.changeDirectionDown, name="go_down")
+    pset.addTerminal(snake.changeDirectionLeft, name="go_left")
+    pset.addTerminal(snake.changeDirectionRight, name="go_right")
     pset.addTerminal(snake.go_straight, name="go_straight")
 
-    creator.create("FitnessMax", base.Fitness, weights=(1.0,1.0))
+    # displayStrategyRun("if_moving_right(if_wall_right(if_danger_ahead(go_up, go_straight),if_wall_2_ahead(go_down, go_straight)), if_moving_down(if_danger_ahead(go_right, if_wall_2_left(go_left, go_right)), if_moving_left(if_wall_ahead(go_down,go_straight), if_moving_up(if_danger_ahead(go_left, go_straight),go_straight))))")
+ 
+
+    creator.create("FitnessMax", base.Fitness, weights=(1.0,))
     creator.create("Individual", gp.PrimitiveTree, fitness=creator.FitnessMax)
 
     toolbox = base.Toolbox()
-    toolbox.register("expr", gp.genHalfAndHalf, pset=pset, min_=2, max_=4)
+    toolbox.register("expr", gp.genHalfAndHalf, pset=pset, min_=2, max_=5)
     toolbox.register("individual", tools.initIterate,
                      creator.Individual, toolbox.expr)
     toolbox.register("population", tools.initRepeat, list, toolbox.individual)
     toolbox.register("compile", gp.compile, pset=pset)
 
     toolbox.register("evaluate", runGame)
-    toolbox.register("select", tools.selTournament, tournsize=2)
-    # toolbox.register("select", tools.selDoubleTournament, fitness_size=3, parsimony_size=1.05, fitness_first=True)
+    # toolbox.register("select", tools.selTournament, tournsize=5)
+    toolbox.register("select", tools.selDoubleTournament, fitness_size=5, parsimony_size=parsimony, fitness_first=True)
     toolbox.register("mate", gp.cxOnePoint)
-    toolbox.register("expr_mut", gp.genHalfAndHalf, min_=1, max_=3, pset=pset)
+    toolbox.register("expr_mut", gp.genFull, min_=1, max_=2, pset=pset)
+    # toolbox.register("mutate", gp.mutUniform, expr=toolbox.expr_mut, pset=pset)
     toolbox.register("mutate", gp.mutNodeReplacement, pset=pset)
-    # toolbox.register("mutate", gp.mutShrink)
 
     toolbox.decorate("mate", gp.staticLimit(
-        key=operator.attrgetter("height"), max_value=5))
+        key=operator.attrgetter("height"), max_value=10))
     toolbox.decorate("mutate", gp.staticLimit(
-        key=operator.attrgetter("height"), max_value=5))
+        key=operator.attrgetter("height"), max_value=10))
 
     stats_fit = tools.Statistics(lambda ind: ind.fitness.values)
     stats_size = tools.Statistics(len)
@@ -529,44 +576,51 @@ def main():
     pool = multiprocessing.Pool()
     toolbox.register("map", pool.map)
 
-    ## THIS IS WHERE YOUR CORE EVOLUTIONARY ALGORITHM WILL GO #
     random.seed()
     pop = toolbox.population(n=POP)
-    hof = tools.HallOfFame(5)
-    pop, log = algorithms.eaSimple(
-        pop, toolbox, cxpb , mutpb, GENERATIONS, stats=mstats, halloffame=hof, verbose=True)
-    expr = tools.selBest(pop, 1)[0]
-    print expr
+    hof = tools.HallOfFame(3)
+    try:
+        pop, log = algorithms.eaSimple(
+            pop, toolbox, cxpb, mutpb, GENERATIONS, stats=mstats, halloffame=hof, verbose=True)
+        # pop, log = algorithms.eaMuCommaLambda(
+        #     pop, toolbox, int(POP*0.8), int(POP*0.9), cxpb, mutpb, GENERATIONS, stats=mstats, halloffame=hof, verbose=True)
+        expr = tools.selBest(pop, 1)[0]
+        print expr
 
-    # inp = raw_input("display best? ")
-    # if len(inp)>0:
-    #     displayStrategyRun(expr)
+        # inp = raw_input("display best? ")
+        # if len(inp)>0:
+        #     displayStrategyRun(expr)
+        val = evaluate(expr, NUM_EVALS)
+        print "Evaluating: ", str(NUM_EVALS), "times, average score: ", str(val)
 
-
-    # inp = raw_input("eval best? ")
-    # if inp == "y" or inp =="Y":
-    #     NUM_EVALS = input("how many times?: ")
-    #     print "Evaluating: ", NUM_EVALS
-    #     print runGame(expr)
-
-    nodes, edges, labels = gp.graph(expr)
-    g = pgv.AGraph(nodeSep=1.0)
-    g.add_nodes_from(nodes)
-    g.add_edges_from(edges)
-    g.layout(prog="dot")
-    for i in nodes:
-        n = g.get_node(i)
-        n.attr["label"] = labels[i]
-    g.draw("tree.pdf")
-
-    return mstats.compile(pop), mstats, hof
+        # nodes, edges, labels = gp.graph(expr)
+        # g = pgv.AGraph(nodeSep=1.0)
+        # g.add_nodes_from(nodes)
+        # g.add_edges_from(edges)
+        # g.layout(prog="dot")
+        # for i in nodes:
+        #     n = g.get_node(i)
+        #     n.attr["label"] = labels[i]
+        # g.draw("tree.pdf")
+    except KeyboardInterrupt:
+        pool.terminate()
+        pool.join()
+        raise KeyboardInterrupt
+    return mstats.compile(pop), val
 
 if __name__ == "__main__":
-    
-    for x in range(0,20):
-        record = main()[0]
-        print record
-        row = (record['fitness']['avg'], record['fitness']['max'], record['fitness']['std'], record['size']['avg'], record['size']['max'], record['size']['std'], "\r")
-        fd = open('approach3results_turn.csv', 'a')
-        fd.write(",".join(map(str, row)))
-        fd.close()
+
+    iterations = 1
+    if len(sys.argv)==2:
+        iterations = int(sys.argv[1])
+    try:
+        for x in range(0,iterations):
+            out = main()
+            record = out[0]
+            print record
+            row = (record['fitness']['avg'], record['fitness']['max'], record['fitness']['std'], record['size']['avg'], record['size']['max'], record['size']['std'], out[1], "\r")
+            fd = open('approach3_route_results.csv', 'a')
+            fd.write(",".join(map(str, row)))
+            fd.close()
+    except KeyboardInterrupt:
+        print "Terminated by user, after %s iterations" % str(x)

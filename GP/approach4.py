@@ -7,7 +7,7 @@ import numpy
 from functools import partial
 from collections import deque
 
-from deap import algorithms
+import algorithms
 from deap import base
 from deap import creator
 from deap import tools
@@ -15,6 +15,7 @@ from deap import gp
 # import pygraphviz as pgv
 import multiprocessing
 import sys
+import argparse as ap
 
 S_UP, S_RIGHT, S_DOWN, S_LEFT = 0, 1, 2, 3
 XSIZE, YSIZE = 14, 14
@@ -394,8 +395,8 @@ def runGame(individual):
     avg_steps = total_steps/(NUM_EVALS*100)
     avg_score = total_score/NUM_EVALS
     coverage = float(len(tour))/float((XSIZE-2)*(YSIZE-2))
-    # return coverage + avg_steps,
-    return coverage * avg_steps,
+    return coverage + avg_steps,
+    # return coverage * avg_steps,
 
 
 def runInGame(individual, evals):
@@ -495,10 +496,10 @@ def displayStrategyRun(individual):
     return snake.score,
 
 
-def main():
+def main(multicore):
     global snake
     global pset
-
+    print multicore
     snake = SnakePlayer()
 
     pset = gp.PrimitiveSet("MAIN", 0)
@@ -583,8 +584,9 @@ def main():
     # mstats.register("min", numpy.min)
     mstats.register("max", numpy.max)
 
-    pool = multiprocessing.Pool()
-    toolbox.register("map", pool.map)
+    if multicore:
+        pool = multiprocessing.Pool()
+        toolbox.register("map", pool.map)
 
     
     pop = toolbox.population(n=POP)
@@ -616,25 +618,44 @@ def main():
         #     n.attr["label"] = labels[i]
         # g.draw("tree.pdf")
     except KeyboardInterrupt:
-        pool.terminate()
-        pool.join()
+        if multicore:
+            pool.terminate()
+            pool.join()
         raise KeyboardInterrupt
     return mstats.compile(pop), val
 
 if __name__ == "__main__":
 
-    iterations = 1
-    if len(sys.argv)==2:
-        iterations = int(sys.argv[1])
+    parser = ap.ArgumentParser(description="My Script")
+    parser.add_argument("--iterations", type=int)
+    parser.add_argument("--multicore", action='store_true')
+    parser.add_argument("--seed")
+    parser.add_argument("--save_results", action='store_true')
+
+
+    args, leftovers = parser.parse_known_args()
+
+    iterations = 1 if args.iterations is None else int(args.iterations)
+    multicore = args.multicore
+
+    if args.seed is not None:
+        iterations = 1
+        multicore = False
+   
     try:
-        for x in range(0,iterations):
-            random.seed()
-            out = main()
+        for x in range(0, iterations):
+            
+            if args.seed is not None:
+                seed = float(args.seed)
+            else:
+                seed = random.random()
+            random.seed(seed)
+            out = main(multicore)
             record = out[0]
-            print record
-            row = (record['fitness']['avg'], record['fitness']['max'], record['fitness']['std'], record['size']['avg'], record['size']['max'], record['size']['std'], out[1], "\r")
-            fd = open('approach4_results.csv', 'a')
-            fd.write(",".join(map(str, row)))
-            fd.close()
+            if args.save_results:
+                row = (record['fitness']['avg'], record['fitness']['max'], record['fitness']['std'], record['size']['avg'], record['size']['max'], record['size']['std'], out[1], "\r")
+                fd = open('approach4_seeds.csv', 'a')
+                fd.write(",".join(map(str, row)))
+                fd.close()
     except KeyboardInterrupt:
         print "Terminated by user, after %s iterations" % str(x)

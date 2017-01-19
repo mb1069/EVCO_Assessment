@@ -33,16 +33,6 @@ max_tree_depth = 7
 def if_then_else(condition, out1, out2):
     out1() if condition() else out2()
 
-def progn(*args):
-    for arg in args:
-        arg()
-
-def prog2(out1, out2):
-    return partial(progn,out1,out2)
-
-def prog3(out1, out2, out3):
-    return partial(progn,out1,out2,out3)
-
 # This class can be used to create a basic player object (snake agent)
 
 class SnakePlayer(list):
@@ -245,6 +235,12 @@ class SnakePlayer(list):
         tile = self.body[0]
         return (tile[0] in [1, XSIZE-1]) or (tile[1] in [1, XSIZE-1])
 
+
+    def sense_wall_2_away(self):
+        tile = self.body[0]
+        return (tile[0] in [2, XSIZE-2] or tile[1] in [2, XSIZE-2])
+
+
     def if_wall_ahead(self, out1, out2):
         return partial(if_then_else, self.sense_wall_ahead, out1, out2)
 
@@ -314,6 +310,9 @@ class SnakePlayer(list):
     def if_against_wall(self, out1, out2):
         return partial(if_then_else, self.sense_against_wall, out1, out2)
 
+
+    def if_wall_2_away(self, out1, out2):
+        return partial(if_then_else, self.sense_wall_2_away, out1, out2)
 
 def is_tile_empty(snake, food, tile):
     return not ((tile in snake.body) or (tile in food))
@@ -392,11 +391,11 @@ def runGame(individual):
         total_steps += steps
         total_score += snake.score
 
-    avg_steps = total_steps/(NUM_EVALS*50)
+    avg_steps = total_steps/(NUM_EVALS*100)
     avg_score = total_score/NUM_EVALS
     coverage = float(len(tour))/float((XSIZE-2)*(YSIZE-2))
     # return coverage + avg_steps,
-    return avg_steps + (coverage * (avg_score if avg_score>5 else 0)),
+    return coverage * avg_steps,
 
 
 def runInGame(individual, evals):
@@ -524,16 +523,20 @@ def main():
     # pset.addPrimitive(snake.if_food_left, 2, name="if_food_left")
     # pset.addPrimitive(snake.if_food_down, 2, name="if_food_down")
 
+
+
+    pset.addPrimitive(snake.if_wall_2_away, 2, name="if_wall_2_away")
+
     # pset.addPrimitive(snake.if_wall_2_right, 2, name="if_wall_2_right")
     pset.addPrimitive(snake.if_wall_left, 2, name="if_wall_left")
 
 # Necessary for fully functioning solutions
     
     pset.addPrimitive(snake.if_wall_ahead, 2, name="if_wall_ahead")
-    pset.addPrimitive(snake.if_wall_2_ahead, 2, name="if_wall_2_ahead")
+    # pset.addPrimitive(snake.if_wall_2_ahead, 2, name="if_wall_2_ahead")
     pset.addPrimitive(snake.if_wall_right, 2, name="if_wall_right")
 
-    pset.addPrimitive(snake.if_wall_2_left, 2, name="if_wall_2_left")
+    # pset.addPrimitive(snake.if_wall_2_left, 2, name="if_wall_2_left")
 
     pset.addPrimitive(snake.if_moving_up, 2, name="if_moving_up")
     pset.addPrimitive(snake.if_moving_right, 2, name="if_moving_right")
@@ -599,9 +602,9 @@ def main():
         val = runInGame(expr, evals)
         print "Evaluating: ", str(evals), "times, average score: ", str(val)
 
-        inp = raw_input("display best? ")
-        if len(inp)>0:
-            displayStrategyRun(expr)
+        # inp = raw_input("display best? ")
+        # if len(inp)>0:
+        #     displayStrategyRun(expr)
 
         # nodes, edges, labels = gp.graph(expr)
         # g = pgv.AGraph(nodeSep=1.0)

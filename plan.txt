@@ -10,6 +10,3 @@ To try:
 - Then minimise number of steps taken for optimal solution
 
 Plan:
-First define fitness function / set of operators for GP/grammatical evo
-
-Then contrast GP, GE and neural networks

@@ -641,7 +641,9 @@ if __name__ == "__main__":
     if args.seed is not None:
         iterations = 1
         multicore = False
+        print "Seed detected, ignoring other flags (running single run on non-multicore process to ensure deterministic execution)."
    
+
     try:
         for x in range(0, iterations):
             

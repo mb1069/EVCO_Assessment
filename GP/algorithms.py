@@ -184,10 +184,10 @@ def eaSimple(population, toolbox, cxpb, mutpb, ngen, stats=None,
         if verbose:
             print logbook.stream
 
-        best_ind = tools.selBest(population, 1)[0]
-        best_fitness = toolbox.evaluate(best_ind)[0]
-        if (best_fitness>=133):
-            return population, logbook
+        # best_ind = tools.selBest(population, 1)[0]
+        # best_fitness = toolbox.evaluate(best_ind)[0]
+        # if (best_fitness>=133):
+        #     return population, logbook
 
     return population, logbook
 

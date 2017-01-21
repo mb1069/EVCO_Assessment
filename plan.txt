@@ -9,4 +9,12 @@ To try:
 - Then maximise score
 - Then minimise number of steps taken for optimal solution
 
-Plan:
+TODO:
+- Finish GA/GP/Neural network comparison
+- Snake design justification
+	A greedy snake (looks after food) will on average score higher marks, but requires a HUGE computational power to achieve anything.
+	A non-greedy snake can find an optimal solution, but can lack full coverage of a board.
+		This aims to find a hamiltonian path through the map, irregardless of it's own tail (as it will beat the game before having a length longer than the hamiltonian path) or food positioning.
+		Requires additional operators if_wall_2_right, if_wall_2_left, OR if_wall_2_away
+			No longer requires LOADS of operators
+- Algorithm comparison

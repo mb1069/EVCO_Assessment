@@ -496,7 +496,7 @@ def displayStrategyRun(individual):
     return snake.score,
 
 
-def main(multicore, seed):
+def main(multicore):
     global snake
     global pset
     print multicore
@@ -603,8 +603,10 @@ def main(multicore, seed):
         evals = 100
         val = runInGame(expr, evals)
         print "Evaluating: ", str(evals), "times, average score: ", str(val)
-        if seed:
-                displayStrategyRun(expr)
+
+        # inp = raw_input("display best? ")
+        # if len(inp)>0:
+        #     displayStrategyRun(expr)
 
         # nodes, edges, labels = gp.graph(expr)
         # g = pgv.AGraph(nodeSep=1.0)
@@ -650,11 +652,11 @@ if __name__ == "__main__":
             else:
                 seed = random.random()
             random.seed(seed)
-            out = main(multicore, args.seed is not None)
+            out = main(multicore)
             record = out[0]
             if args.save_results:
                 row = (record['fitness']['avg'], record['fitness']['max'], record['fitness']['std'], record['size']['avg'], record['size']['max'], record['size']['std'], out[1], "\r")
-                fd = open('approach4_seeds.csv', 'a')
+                fd = open('approach4_results.csv', 'a')
                 fd.write(",".join(map(str, row)))
                 fd.close()
     except KeyboardInterrupt:

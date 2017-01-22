@@ -7,7 +7,8 @@ import numpy
 from functools import partial
 from collections import deque
 
-import algorithms
+# import algorithms
+from deap import algorithms
 from deap import base
 from deap import creator
 from deap import tools
@@ -31,6 +32,7 @@ cxpb = 0.7
 mutpb = 0.8
 parsimony = 1.05
 max_tree_depth = 7
+
 def if_then_else(condition, out1, out2):
     out1() if condition() else out2()
 
@@ -311,7 +313,6 @@ class SnakePlayer(list):
     def if_against_wall(self, out1, out2):
         return partial(if_then_else, self.sense_against_wall, out1, out2)
 
-
     def if_wall_2_away(self, out1, out2):
         return partial(if_then_else, self.sense_wall_2_away, out1, out2)
 
@@ -322,35 +323,37 @@ def is_tile_empty(snake, food, tile):
 # TODO convert to using a spiral search around the point
 def place_food(snake):
     food = []
-    while len(food) < NFOOD:
-        free_spaces = []
-        for x in range(1, XSIZE - 1):
-            for y in range(1, YSIZE - 1 ):
-                if [x, y] not in snake.body and [x,y] not in food:
-                    free_spaces.append([x,y])
-        rand = random.randint(0, len(free_spaces)-1)
-        food.insert(0, free_spaces[rand])
-        # randx = random.randint(1, (XSIZE - 2))
-        # randy = random.randint(1, (YSIZE - 2))
-        # rand_food_tile = [randy, randx]
+    try:
+        while len(food) < NFOOD:
+            free_spaces = []
+            for x in range(1, XSIZE - 1):
+                for y in range(1, YSIZE - 1):
+                    if [x, y] not in snake.body and [x,y] not in food:
+                        free_spaces.append([x,y])
+            rand = random.randint(0, len(free_spaces)-1)
+            food.insert(0, free_spaces[rand])
+            # randx = random.randint(1, (XSIZE - 2))
+            # randy = random.randint(1, (YSIZE - 2))
+            # rand_food_tile = [randy, randx]
 
 
-        # if is_tile_empty(snake, food, rand_food_tile):
-        #     food.insert(0, rand_food_tile)
-        # else:
-        #     closest_free_tile = rand_food_tile
-        #     min_d = -1
-        #     for x in range(XSIZE-1):
-        #         for y in range(YSIZE-1):
-        #             # print x,y, is_tile_empty(snake, food, [y,x])
-        #             if is_tile_empty(snake, food, [y,x]):
-        #                 d = numpy.sqrt(numpy.power(y-randy,2) + numpy.power(x-randx,2))
-        #                 if d<min_d:
-        #                     min_d = d
-        #                     closest_free_tile[0] = y
-        #                     closest_free_tile[1] = x
-        #     food.insert(0, closest_free_tile)
-
+            # if is_tile_empty(snake, food, rand_food_tile):
+            #     food.insert(0, rand_food_tile)
+            # else:
+            #     closest_free_tile = rand_food_tile
+            #     min_d = -1
+            #     for x in range(XSIZE-1):
+            #         for y in range(YSIZE-1):
+            #             # print x,y, is_tile_empty(snake, food, [y,x])
+            #             if is_tile_empty(snake, food, [y,x]):
+            #                 d = numpy.sqrt(numpy.power(y-randy,2) + numpy.power(x-randx,2))
+            #                 if d<min_d:
+            #                     min_d = d
+            #                     closest_free_tile[0] = y
+            #                     closest_free_tile[1] = x
+            #     food.insert(0, closest_free_tile)
+    except ValueError:
+        raise ValueError
     snake.food = food  # let the snake know where the food is
     return (food)
 
@@ -496,7 +499,7 @@ def displayStrategyRun(individual):
     return snake.score,
 
 
-def main(multicore):
+def main(multicore, seeded):
     global snake
     global pset
     print multicore
@@ -551,7 +554,7 @@ def main(multicore):
     pset.addTerminal(snake.go_straight, name="go_straight")
 
     # displayStrategyRun("if_moving_left(if_wall_ahead(if_wall_2_left(if_wall_2_right(if_wall_right(go_up, go_straight), if_moving_down(go_straight, go_down)), go_down), if_wall_2_right(if_wall_2_left(if_moving_up(go_right, if_moving_right(go_right, go_left)), if_moving_right(go_right, go_straight)), if_moving_left(if_wall_2_ahead(go_left, go_straight), if_wall_2_ahead(if_moving_right(go_straight, go_left), go_right)))), if_moving_up(if_wall_2_ahead(if_wall_right(if_wall_right(go_left, if_wall_2_left(go_straight, if_wall_2_right(go_straight, go_left))), if_wall_2_left(go_straight, if_wall_2_right(go_straight, go_left))), if_wall_2_right(go_down, go_up)), if_wall_2_ahead(if_moving_down(if_moving_right(go_straight, go_left), if_moving_right(go_up, go_up)), if_wall_left(if_wall_2_right(go_right, go_right), if_wall_2_right(go_right, go_down)))))")
- 
+
 
     creator.create("FitnessMax", base.Fitness, weights=(1.0,))
     creator.create("Individual", gp.PrimitiveTree, fitness=creator.FitnessMax)
@@ -604,9 +607,8 @@ def main(multicore):
         val = runInGame(expr, evals)
         print "Evaluating: ", str(evals), "times, average score: ", str(val)
 
-        # inp = raw_input("display best? ")
-        # if len(inp)>0:
-        #     displayStrategyRun(expr)
+        if seeded:
+            displayStrategyRun(expr)
 
         # nodes, edges, labels = gp.graph(expr)
         # g = pgv.AGraph(nodeSep=1.0)
@@ -652,7 +654,7 @@ if __name__ == "__main__":
             else:
                 seed = random.random()
             random.seed(seed)
-            out = main(multicore)
+            out = main(multicore, args.seed is not None)
             record = out[0]
             if args.save_results:
                 row = (record['fitness']['avg'], record['fitness']['max'], record['fitness']['std'], record['size']['avg'], record['size']['max'], record['size']['std'], out[1], "\r")

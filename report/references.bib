@@ -1,29 +1,83 @@
 
-@MISC{Ehlis2000-sz,
-  title        = "Application of Genetic Programming to the Snake Game -
-                  Artificial Intelligence - Articles - Articles - {GameDev.net}",
-  booktitle    = "gamedev.net",
-  author       = "Ehlis, Tobin",
-  abstract     = "This paper describes the evolution of a genetic program to
-                  optimize a problem featuring task prioritization in a
-                  dynamic, randomly updated environment. The specific problem
-                  approached is the ``snake game'' in which a snake confined to
-                  a rectangular board attempts to avoid the walls and its own
-                  body while eating pieces of food. The problem is particularly
-                  interesting because as the snake eats the food, its body
-                  grows, causing the space through which the snake can navigate
-                  to become more confined. Furthermore, with each piece of food
-                  eaten, a new piece of food is generated in a random location
-                  in the playing field, adding an element of uncertainty to the
-                  program. This paper will focus on the development and
-                  analysis of a successful function set that will allow the
-                  evolution of a genetic program that causes the snake to eat
-                  the maximum possible pieces of food.",
-  month        =  "9~" # aug,
-  year         =  2000,
-  howpublished = "\url{https://www.gamedev.net/resources/_/technical/artificial-intelligence/application-of-genetic-programming-to-the-snake-r1175}",
-  note         = "Accessed: 2017-1-16"
-},
+
+
+@INPROCEEDINGS{Hauptman2005-zg,
+  title      = "{GP-EndChess}: Using Genetic Programming to Evolve Chess
+                Endgame Players",
+  booktitle  = "Genetic Programming",
+  author     = "Hauptman, Ami and Sipper, Moshe",
+  editor     = "Keijzer, Maarten and Tettamanzi, Andrea and Collet, Pierre and
+                van Hemert, Jano and Tomassini, Marco",
+  abstract   = "We apply genetic programming to the evolution of strategies for
+                playing chess endgames. Our evolved programs are able to draw
+                or win against an expert human-based strategy, and draw against
+                CRAFTY---a world-class chess program, which finished second in
+                the 2004 Computer Chess Championship.",
+  publisher  = "Springer Berlin Heidelberg",
+  pages      = "120--131",
+  series     = "Lecture Notes in Computer Science",
+  month      =  "30~" # mar,
+  year       =  2005,
+  language   = "en",
+  conference = "European Conference on Genetic Programming"
+}
+
+
+@ARTICLE{Richards1998-si,
+  title     = "Evolving Neural Networks to Play Go",
+  author    = "Richards, Norman and Moriarty, David E and Miikkulainen, Risto",
+  abstract  = "Go is a difficult game for computers to master, and the best go
+               programs are still weaker than the average human player. Since
+               the traditional game playing techniques have proven inadequate,
+               new approaches to computer go need to be studied. This paper
+               presents a new approach to learning to play go. The SANE
+               (Symbiotic, Adaptive Neuro-Evolution) method was used to evolve
+               networks capable of playing go on small boards with no
+               pre-programmed go knowledge. On a 9 $\times$ 9 go board,
+               networks that were able to defeat a simple computer opponent
+               were evolved within a few hundred generations. Most
+               significantly, the networks exhibited several aspects of general
+               go playing, which suggests the approach could scale up well.",
+  journal   = "Applied Intelligence",
+  publisher = "Kluwer Academic Publishers",
+  volume    =  8,
+  number    =  1,
+  pages     = "85--96",
+  month     =  "1~" # jan,
+  year      =  1998,
+  language  = "en"
+}
+
+
+@INPROCEEDINGS{Fogel1993-qp,
+  title     = "Using evolutionary programing to create neural networks that are
+               capable of playing tic-tac-toe",
+  booktitle = "{IEEE} International Conference on Neural Networks",
+  author    = "Fogel, D B",
+  abstract  = "The use of evolutionary programming for adapting the design and
+               weights of a multi-layer feedforward perceptron in the context
+               of machine learning is described. Specifically, it is desired to
+               evolve the structure and weights of a single hidden layer
+               perceptron such that it can achieve a high level of play in the
+               game tic-tac-toe without the use of heuristics or credit
+               assignment algorithms. Conclusions from the experiments are
+               offered regarding the relative importance of specific mutation
+               operations, the necessity for credit assignment procedures, and
+               the efficiency and effectiveness of evolutionary search",
+  pages     = "875--880 vol.2",
+  year      =  1993,
+  keywords  = "feedforward neural nets;learning (artificial
+               intelligence);stochastic programming;credit assignment
+               algorithms;credit assignment procedures;evolutionary
+               programing;evolutionary search;heuristics;machine
+               learning;multi-layer feedforward perceptron;mutation
+               operations;neural networks;single hidden layer
+               perceptron;tic-tac-toe;Evolution (biology);Genetic
+               algorithms;Genetic mutations;Genetic programming;Intelligent
+               systems;Learning systems;Machine intelligence;Machine
+               learning;Machine learning algorithms;Neural networks"
+}
+
 
 @ARTICLE{Hausknecht2014-uc,
   title    = "A Neuroevolution Approach to General Atari Game Playing",
@@ -346,43 +400,6 @@
                state;general video game player;genetic programming;hand-crafted
                feature;learning algorithm;screen grab;Avatars;Engines;Euclidean
                distance;Games;Genetic programming;Missiles;Monte Carlo methods"
-}
-
-@INPROCEEDINGS{Leong2013-pu,
-  title     = "Self-synthesized controllers for tower defense game using
-               genetic programming",
-  booktitle = "2013 {IEEE} International Conference on Control System,
-               Computing and Engineering",
-  author    = "Leong, L C and Soon, G K and Guan, T T and On, C K and Alfred, R
-               and Anthony, P",
-  abstract  = "In this paper, we describe the results of implementing Genetic
-               Programming (GP) using two different Artificial Neural Networks
-               (ANN) topologies in a customized Tower Defense (TD) games. The
-               ANNs used are (1) Feed-forward Neural Network (FFNN) and (2)
-               Elman-Recurrent Neural Network (ERNN). TD game is one of the
-               strategy game genres. Players are required to build towers in
-               order to prevent the creeps from reaching their bases. Lives
-               will be deducted if any creeps manage to reach the base. In this
-               research, a map will be designed. The AI method used will
-               self-synthesize and analyze the level of difficulty of the
-               designed map. The GP acts as a tuner of the weights in ANNs. The
-               ANNs will act as players to block the creeps from reaching the
-               base. The map will then be evaluated by the ANNs in the testing
-               phase. Our findings showed that GP works well with ERNN compared
-               to GP with FFNN.",
-  pages     = "487--492",
-  month     =  nov,
-  year      =  2013,
-  keywords  = "artificial intelligence;computer games;control engineering
-               computing;feedforward neural nets;genetic algorithms;recurrent
-               neural nets;AI method;ANN topologies;ERNN;Elman-recurrent neural
-               network;FFNN;artificial neural networks;feedforward neural
-               network;genetic programming;self-synthesized controllers;tower
-               defense game;Artificial intelligence;Artificial neural
-               networks;Biological cells;Creep;Games;Neurons;Poles and
-               towers;Artificial Neural Network (ANN);Elman-Recurrent Neural
-               Network (ERNN);Feed-forward Neural Network (FFNN);Genetic
-               Programming (GP);Tower Defense (TD) Game"
 }
 
 @ARTICLE{Martinez-Arellano2016-gb,
@@ -728,34 +745,6 @@
                othello;genetic algorithms"
 }
 
-@INPROCEEDINGS{Jia2015-jk,
-  title     = "A strongly typed {GP-based} video game player",
-  booktitle = "2015 {IEEE} Conference on Computational Intelligence and Games
-               ({CIG})",
-  author    = "Jia, B and Ebner, M",
-  abstract  = "This paper attempts to evolve a general video game player, i.e.
-               an agent which is able to learn to play many different video
-               games with little domain knowledge. Our project uses strongly
-               typed genetic programming as a learning algorithm. Three simple
-               hand-crafted features are chosen to represent the game state.
-               Each feature is a vector which consists of the position and
-               orientation of each game object that is visible on the screen.
-               These feature vectors are handed to the learning algorithm which
-               will output the action the game player will take next. Game
-               knowledge and feature vectors are acquired by processing screen
-               grabs from the game. Three different video games are used to
-               test the algorithm. Experiments show that our algorithm is able
-               to find solutions to play all these three games efficiently.",
-  pages     = "299--305",
-  month     =  aug,
-  year      =  2015,
-  keywords  = "computer games;genetic algorithms;learning (artificial
-               intelligence);GP-based video game player;domain
-               knowledge;feature vector;game knowledge;game object;game
-               state;general video game player;genetic programming;hand-crafted
-               feature;learning algorithm;screen grab;Avatars;Engines;Euclidean
-               distance;Games;Genetic programming;Missiles;Monte Carlo methods"
-}
 
 @INPROCEEDINGS{Leong2013-pu,
   title     = "Self-synthesized controllers for tower defense game using
@@ -889,59 +878,49 @@
                Table;Opponent Modeling;Spoof"
 }
 
-@INPROCEEDINGS{Alhejali2013-cl,
-  title     = "Using genetic programming to evolve heuristics for a Monte Carlo
-               Tree Search Ms {Pac-Man} agent",
-  booktitle = "2013 {IEEE} Conference on Computational Inteligence in Games
-               ({CIG})",
-  author    = "Alhejali, A M and Lucas, S M",
-  abstract  = "Ms Pac-Man is one of the most challenging test beds in game
-               artificial intelligence (AI). Genetic programming and Monte
-               Carlo Tree Search (MCTS) have already been successful applied to
-               several games including Pac-Man. In this paper, we use Monte
-               Carlo Tree Search to create a Ms Pac-Man playing agent before
-               using genetic programming to enhance its performance by evolving
-               a new default policy to replace the random agent used in the
-               simulations. The new agent with the evolved default policy was
-               able to achieve an 18\% increase on its average score over the
-               agent with random default policy.",
-  pages     = "1--8",
-  month     =  aug,
-  year      =  2013,
-  keywords  = "Monte Carlo methods;artificial intelligence;computer
-               games;genetic algorithms;tree searching;Al;MCTS;Monte Carlo tree
-               search Ms Pac-Man agent;evolved default policy;game artificial
-               intelligence;genetic programming;random agent;random default
-               policy;Equations;Games;Genetic programming;Mathematical
-               model;Monte Carlo methods;Sociology;Monte Carlo Tree
-               Search;Pac-Man;genetic programming"
+@PHDTHESIS{Christopher_Lockhart2010-em,
+  title    = "Application of temporal difference learning to the game of Snake",
+  author   = "Christopher Lockhart, University of Louisville and {Authors}",
+  abstract = "The game of Snake has been selected to provide a unique
+              application of the TD( ) algorithm as proposed by Sutton. A
+              reinforcement learning technique for producing computer
+              controlled players is documented. Using value function
+              approximation with multilayer artificial neural networks and the
+              actor-critic architecture, computer players capable of playing
+              the game of Snake can be created. The adaptation to the standard
+              neural network backpropagation procedure will be documented. Not
+              only does the proposed technique provide reasonable player
+              performance, its application is unique; this approach to Snake
+              has never been documented. By performing sets of trials, the
+              performance of the players are evaluated and compared against an
+              existing machine learning technique. Learning curves provide
+              visualization for the results. Though the snake players are shown
+              to be capable of achieving lower scores than with the existing
+              method, the technique is able to produce agents that accumulate
+              scores, much more efficiently.",
+  year     =  2010,
+  school   = "University of Louisville"
 }
 
-@MISC{Ehlis2000-sz,
-  title        = "Application of Genetic Programming to the Snake Game -
-                  Artificial Intelligence - Articles - Articles - {GameDev.net}",
-  booktitle    = "gamedev.net",
-  author       = "Ehlis, Tobin",
-  abstract     = "This paper describes the evolution of a genetic program to
-                  optimize a problem featuring task prioritization in a
-                  dynamic, randomly updated environment. The specific problem
-                  approached is the ``snake game'' in which a snake confined to
-                  a rectangular board attempts to avoid the walls and its own
-                  body while eating pieces of food. The problem is particularly
-                  interesting because as the snake eats the food, its body
-                  grows, causing the space through which the snake can navigate
-                  to become more confined. Furthermore, with each piece of food
-                  eaten, a new piece of food is generated in a random location
-                  in the playing field, adding an element of uncertainty to the
-                  program. This paper will focus on the development and
-                  analysis of a successful function set that will allow the
-                  evolution of a genetic program that causes the snake to eat
-                  the maximum possible pieces of food.",
-  month        =  "9~" # aug,
-  year         =  2000,
-  howpublished = "\url{https://www.gamedev.net/resources/_/technical/artificial-intelligence/application-of-genetic-programming-to-the-snake-r1175}",
-  note         = "Accessed: 2017-1-16"
+
+
+
+@ARTICLE{Bowei_Ma_undated-tl,
+  title    = "Exploration of Reinforcement Learning to {SNAKE}",
+  author   = "Bowei Ma, Meng Tang",
+  abstract = "In this project, we explored the application of reinforcement
+              learning in the problem not amenable to closed form analysis. By
+              combining convolutional neural network and reinforcement
+              learning, an agent of game Snake is trained to play the revised
+              Snake game. The challenge is that the size of state space is
+              extremely huge due to the fact that position of the snake affects
+              the training results directly while its changing all the time. By
+              training the agent in a reduced state space, we showed the
+              comparisons among different reinforcement learning algorithms and
+              approximation optimal solution, and analyzed the difference
+              between two major reinforcement learning method."
 }
+
 
 @ARTICLE{Whitley1994-tx,
   title     = "A genetic algorithm tutorial",

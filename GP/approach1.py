@@ -20,7 +20,7 @@ INIT_SIZE = -1
 # THE FOOD (IF THE TAIL IS VERY LONG)
 NFOOD = 1
 GENERATIONS = 150
-POP = 10000
+POP = 1000
 NUM_EVALS = 3
 cxpb = 0.0
 mutpb = 0.8
@@ -479,17 +479,24 @@ def main():
         pool.terminate()
         pool.join()
         raise KeyboardInterrupt
-    return mstats.compile(pop), mstats, hof
+    return mstats.compile(pop), tools.selBest(pop, 1)[0]
 
 
 if __name__ == "__main__":
     try:
-        for x in range(0,5):
-            record = main()[0]
-            print record
+        for x in range(0,28):
+            out = main()
+            record = out[0]
+            expr = str(out[1])
             row = (record['fitness']['avg'], record['fitness']['max'], record['fitness']['std'], record['size']['avg'], record['size']['max'], record['size']['std'], "\r")
             fd = open('approach1results.csv', 'a')
             fd.write(",".join(map(str, row)))
+            fd.close()
+            if runGame(expr)[0]>=133:
+                fd = open('snakesbest.txt', 'a')
+            else:
+                fd = open('snakes.txt', 'a')
+            fd.write(expr)
             fd.close()
     except KeyboardInterrupt:
         print "Terminated by user, after %s iterations" % str(x)

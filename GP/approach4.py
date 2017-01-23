@@ -25,7 +25,7 @@ INIT_SIZE = -1
 # NOTE: YOU MAY NEED TO ADD A CHECK THAT THERE ARE ENOUGH SPACES LEFT FOR
 # THE FOOD (IF THE TAIL IS VERY LONG)
 NFOOD = 1
-GENERATIONS = 150
+GENERATIONS = 90
 POP = 1000
 NUM_EVALS = 1
 cxpb = 0.7
@@ -47,6 +47,7 @@ class SnakePlayer(list):
         self.body = deque([[4, 10], [4, 9], [4, 8], [4, 7], [4, 6],
                      [4, 5], [4, 4], [4, 3], [4, 2], [4, 1], [4, 0]])
         INIT_SIZE = len(self.body)
+        self.initial_size = len(self.body)
         self.score = 0
         self.ahead = []
         self.food = []
@@ -56,6 +57,7 @@ class SnakePlayer(list):
         self.body = deque([[4, 10], [4, 9], [4, 8], [4, 7], [4, 6],
                      [4, 5], [4, 4], [4, 3], [4, 2], [4, 1], [4, 0]])
         self.score = 0
+        self.initial_size = len(self.body)
         self.ahead = []
         self.food = []
 
@@ -145,34 +147,6 @@ class SnakePlayer(list):
         #     self.hit = True
         return (self.hit)
 
-    def sense_danger_right(self):
-        tile = self.get_right_location(1)
-        return self.is_tile_dangerous(tile)
-
-    def sense_danger_2_right(self):
-        tile = self.get_right_location(2)
-        return self.is_tile_dangerous(tile)
-
-    def sense_danger_left(self):
-        tile = self.get_left_location(1)
-        return self.is_tile_dangerous(tile)    
-    
-    def sense_danger_2_left(self):
-        tile = self.get_left_location(1)
-        return self.is_tile_dangerous(tile)    
-    
-    def sense_danger_2_left(self):
-        tile = self.get_left_location(2)
-        return self.is_tile_dangerous(tile)
-
-    def sense_danger_ahead(self):
-        self.get_ahead_location()
-        return self.is_tile_dangerous(self.ahead)
-
-    def sense_danger_2_ahead(self):
-        tile = self.get_ahead_2_location()
-        return self.is_tile_dangerous(tile)
-
     def sense_wall_ahead(self):
         self.get_ahead_location()
         return( self.ahead[0] == 0 or self.ahead[0] == (YSIZE-1) or self.ahead[1] == 0 or self.ahead[1] == (XSIZE-1) )
@@ -180,10 +154,6 @@ class SnakePlayer(list):
     def sense_food_ahead(self):
         self.get_ahead_location()
         return self.ahead in self.food
-
-    def sense_tail_ahead(self):
-        self.get_ahead_location()
-        return self.ahead in self.body
 
     def sense_wall_ahead(self):
         self.get_ahead_location()
@@ -201,26 +171,6 @@ class SnakePlayer(list):
         tile = self.get_ahead_2_location()
         return( tile[0] == 0 or tile[0] == (YSIZE-1) or tile[1] == 0 or tile[1] == (XSIZE-1) )
 
-    def sense_wall_2_left(self):
-        tile = self.get_left_location(2)
-        return( tile[0] == 0 or tile[0] == (YSIZE-1) or tile[1] == 0 or tile[1] == (XSIZE-1) )
-
-    def sense_wall_2_right(self):
-        tile = self.get_right_location(2)
-        return( tile[0] == 0 or tile[0] == (YSIZE-1) or tile[1] == 0 or tile[1] == (XSIZE-1) )
-
-    def sense_food_above(self):
-        return self.food[0][0]<=self.body[0][0]
-
-    def sense_food_right(self):
-        return self.food[0][1]>=self.body[0][1]
-
-    def sense_food_below(self):
-        return not self.sense_food_above()
-
-    def sense_food_left(self):
-        return not self.sense_food_right()
-
     def sense_moving_up(self):
         return self.direction == S_UP
 
@@ -233,16 +183,9 @@ class SnakePlayer(list):
     def sense_moving_left(self):
         return self.direction == S_LEFT
 
-
-    def sense_against_wall(self):
-        tile = self.body[0]
-        return (tile[0] in [1, XSIZE-1]) or (tile[1] in [1, XSIZE-1])
-
-
     def sense_wall_2_away(self):
         tile = self.body[0]
         return (tile[0] in [2, XSIZE-2] or tile[1] in [2, XSIZE-2])
-
 
     def if_wall_ahead(self, out1, out2):
         return partial(if_then_else, self.sense_wall_ahead, out1, out2)
@@ -259,44 +202,11 @@ class SnakePlayer(list):
     def if_wall_2_left(self, out1, out2):
         return partial(if_then_else, self.sense_wall_2_left, out1, out2)    
 
-    def if_wall_2_right(self, out1, out2):
-        return partial(if_then_else, self.sense_wall_2_right, out1, out2)
-
     def if_food_ahead(self, out1, out2):
         return partial(if_then_else, self.sense_food_ahead, out1, out2)
 
     def if_tail_ahead(self, out1, out2):
         return partial(if_then_else, self.sense_tail_ahead, out1, out2)
-
-    def if_danger_right(self, out1, out2):
-        return partial(if_then_else, self.sense_danger_right, out1, out2)
-    
-    def if_danger_2_right(self, out1, out2):
-        return partial(if_then_else, self.sense_danger_right, out1, out2)
-
-    def if_danger_left(self, out1, out2):
-        return partial(if_then_else, self.sense_danger_left, out1, out2)
-
-    def if_danger_2_left(self, out1, out2):
-        return partial(if_then_else, self.sense_danger_2_left, out1, out2)
-
-    def if_danger_ahead(self, out1, out2):
-        return partial(if_then_else, self.sense_danger_ahead, out1, out2)
-
-    def if_danger_2_ahead(self, out1, out2):
-        return partial(if_then_else, self.sense_danger_2_ahead, out1, out2)
-
-    def if_food_above(self, out1, out2):
-        return partial(if_then_else, self.sense_food_above, out1, out2)
-
-    def if_food_right(self, out1, out2):
-        return partial(if_then_else, self.sense_food_right, out1, out2)
-
-    def if_food_left(self, out1, out2):
-        return partial(if_then_else, self.sense_food_left, out1, out2)
-
-    def if_food_down(self, out1, out2):
-        return partial(if_then_else, self.sense_food_below, out1, out2)
 
     def if_moving_up(self, out1, out2):
         return partial(if_then_else, self.sense_moving_up, out1, out2)
@@ -310,9 +220,6 @@ class SnakePlayer(list):
     def if_moving_left(self, out1, out2):
         return partial(if_then_else, self.sense_moving_left, out1, out2)
 
-    def if_against_wall(self, out1, out2):
-        return partial(if_then_else, self.sense_against_wall, out1, out2)
-
     def if_wall_2_away(self, out1, out2):
         return partial(if_then_else, self.sense_wall_2_away, out1, out2)
 
@@ -323,37 +230,38 @@ def is_tile_empty(snake, food, tile):
 # TODO convert to using a spiral search around the point
 def place_food(snake):
     food = []
-    try:
-        while len(food) < NFOOD:
-            free_spaces = []
-            for x in range(1, XSIZE - 1):
-                for y in range(1, YSIZE - 1):
-                    if [x, y] not in snake.body and [x,y] not in food:
-                        free_spaces.append([x,y])
-            rand = random.randint(0, len(free_spaces)-1)
-            food.insert(0, free_spaces[rand])
-            # randx = random.randint(1, (XSIZE - 2))
-            # randy = random.randint(1, (YSIZE - 2))
-            # rand_food_tile = [randy, randx]
+
+    while len(food) < NFOOD:
+        free_spaces = []
+        for x in range(1, XSIZE - 1):
+            for y in range(1, YSIZE - 1):
+                if [x, y] not in snake.body and [x,y] not in food:
+                    free_spaces.append([x,y])
+        if len(free_spaces)==0:
+            return ()
+        rand = random.randint(0, len(free_spaces)-1)
+        food.insert(0, free_spaces[rand])
+        # randx = random.randint(1, (XSIZE - 2))
+        # randy = random.randint(1, (YSIZE - 2))
+        # rand_food_tile = [randy, randx]
 
 
-            # if is_tile_empty(snake, food, rand_food_tile):
-            #     food.insert(0, rand_food_tile)
-            # else:
-            #     closest_free_tile = rand_food_tile
-            #     min_d = -1
-            #     for x in range(XSIZE-1):
-            #         for y in range(YSIZE-1):
-            #             # print x,y, is_tile_empty(snake, food, [y,x])
-            #             if is_tile_empty(snake, food, [y,x]):
-            #                 d = numpy.sqrt(numpy.power(y-randy,2) + numpy.power(x-randx,2))
-            #                 if d<min_d:
-            #                     min_d = d
-            #                     closest_free_tile[0] = y
-            #                     closest_free_tile[1] = x
-            #     food.insert(0, closest_free_tile)
-    except ValueError:
-        raise ValueError
+        # if is_tile_empty(snake, food, rand_food_tile):
+        #     food.insert(0, rand_food_tile)
+        # else:
+        #     closest_free_tile = rand_food_tile
+        #     min_d = -1
+        #     for x in range(XSIZE-1):
+        #         for y in range(YSIZE-1):
+        #             # print x,y, is_tile_empty(snake, food, [y,x])
+        #             if is_tile_empty(snake, food, [y,x]):
+        #                 d = numpy.sqrt(numpy.power(y-randy,2) + numpy.power(x-randx,2))
+        #                 if d<min_d:
+        #                     min_d = d
+        #                     closest_free_tile[0] = y
+        #                     closest_free_tile[1] = x
+        #     food.insert(0, closest_free_tile)
+
     snake.food = food  # let the snake know where the food is
     return (food)
 
@@ -374,7 +282,7 @@ def runGame(individual):
         tour = set()
         tours = 0
         steps = 0 
-        while not snake.snake_has_collided() and not timer == XSIZE * YSIZE:
+        while not snake.snake_has_collided() and not timer == (XSIZE-2) * (YSIZE-2):
             ## EXECUTE THE SNAKE'S BEHAVIOUR HERE ##
             routine()
             snake.updatePosition()
@@ -414,10 +322,12 @@ def runInGame(individual, evals):
         food = place_food(snake)
         timer = 0
 
-        while not snake.snake_has_collided() and not timer == XSIZE * YSIZE:
+        while not snake.snake_has_collided() and not timer == (XSIZE-2) * (YSIZE-2):
             ## EXECUTE THE SNAKE'S BEHAVIOUR HERE ##
             routine()
             snake.updatePosition()
+            if snake.score == ((XSIZE-2) * (YSIZE-2)) - snake.initial_size:
+                break
             if snake.body[0] in food:
                 snake.score += 1
                 try:
@@ -508,39 +418,10 @@ def main(multicore, seeded):
     pset = gp.PrimitiveSet("MAIN", 0)
 
 
-# Other crap
-
-    # pset.addPrimitive(snake.if_food_ahead, 2, name="if_food_ahead")
-    # pset.addPrimitive(snake.if_tail_ahead, 2, name="if_tail_ahead")
-
-    # pset.addPrimitive(snake.if_danger_right, 2, name="if_danger_right")
-    # pset.addPrimitive(snake.if_danger_2_right, 2, name="if_danger_2_right")
-    # pset.addPrimitive(snake.if_danger_left, 2, name="if_danger_left")
-    # pset.addPrimitive(snake.if_danger_2_left, 2, name="if_danger_2_left")
-    # pset.addPrimitive(snake.if_danger_ahead, 2, name="if_danger_ahead")
-    # pset.addPrimitive(snake.if_danger_2_ahead, 2, name="if_danger_2_ahead")
-    # pset.addPrimitive(snake.if_against_wall, 2, name="if_against_wall")
-
-    # pset.addPrimitive(snake.if_food_above, 2, name="if_food_above")
-    # pset.addPrimitive(snake.if_food_right, 2, name="if_food_right")
-
-    # pset.addPrimitive(snake.if_food_left, 2, name="if_food_left")
-    # pset.addPrimitive(snake.if_food_down, 2, name="if_food_down")
-
-
-
     pset.addPrimitive(snake.if_wall_2_away, 2, name="if_wall_2_away")
-
-    # pset.addPrimitive(snake.if_wall_2_right, 2, name="if_wall_2_right")
     pset.addPrimitive(snake.if_wall_left, 2, name="if_wall_left")
-
-# Necessary for fully functioning solutions
-    
     pset.addPrimitive(snake.if_wall_ahead, 2, name="if_wall_ahead")
-    # pset.addPrimitive(snake.if_wall_2_ahead, 2, name="if_wall_2_ahead")
     pset.addPrimitive(snake.if_wall_right, 2, name="if_wall_right")
-
-    # pset.addPrimitive(snake.if_wall_2_left, 2, name="if_wall_2_left")
 
     pset.addPrimitive(snake.if_moving_up, 2, name="if_moving_up")
     pset.addPrimitive(snake.if_moving_right, 2, name="if_moving_right")
@@ -553,9 +434,6 @@ def main(multicore, seeded):
     pset.addTerminal(snake.changeDirectionRight, name="go_right")
     pset.addTerminal(snake.go_straight, name="go_straight")
 
-    # displayStrategyRun("if_moving_left(if_wall_ahead(if_wall_2_left(if_wall_2_right(if_wall_right(go_up, go_straight), if_moving_down(go_straight, go_down)), go_down), if_wall_2_right(if_wall_2_left(if_moving_up(go_right, if_moving_right(go_right, go_left)), if_moving_right(go_right, go_straight)), if_moving_left(if_wall_2_ahead(go_left, go_straight), if_wall_2_ahead(if_moving_right(go_straight, go_left), go_right)))), if_moving_up(if_wall_2_ahead(if_wall_right(if_wall_right(go_left, if_wall_2_left(go_straight, if_wall_2_right(go_straight, go_left))), if_wall_2_left(go_straight, if_wall_2_right(go_straight, go_left))), if_wall_2_right(go_down, go_up)), if_wall_2_ahead(if_moving_down(if_moving_right(go_straight, go_left), if_moving_right(go_up, go_up)), if_wall_left(if_wall_2_right(go_right, go_right), if_wall_2_right(go_right, go_down)))))")
-
-
     creator.create("FitnessMax", base.Fitness, weights=(1.0,))
     creator.create("Individual", gp.PrimitiveTree, fitness=creator.FitnessMax)
 
@@ -567,11 +445,9 @@ def main(multicore, seeded):
     toolbox.register("compile", gp.compile, pset=pset)
 
     toolbox.register("evaluate", runGame)
-    # toolbox.register("select", tools.selTournament, tournsize=3)
     toolbox.register("select", tools.selDoubleTournament, fitness_size=5, parsimony_size=parsimony, fitness_first=True)
     toolbox.register("mate", gp.cxOnePoint)
     toolbox.register("expr_mut", gp.genFull, min_=1, max_=2, pset=pset)
-    # toolbox.register("mutate", gp.mutUniform, expr=toolbox.expr_mut, pset=pset)
     toolbox.register("mutate", gp.mutNodeReplacement, pset=pset)
 
     toolbox.decorate("mate", gp.staticLimit(
@@ -648,6 +524,7 @@ if __name__ == "__main__":
 
     try:
         for x in range(0, iterations):
+        # while True:
             
             if args.seed is not None:
                 seed = float(args.seed)
@@ -661,5 +538,8 @@ if __name__ == "__main__":
                 fd = open('approach4_results.csv', 'a')
                 fd.write(",".join(map(str, row)))
                 fd.close()
+            print "Seed: " + str(seed)
+            if str(record['fitness']['max'])=="133":
+                break
     except KeyboardInterrupt:
         print "Terminated by user, after %s iterations" % str(x)

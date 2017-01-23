@@ -58,8 +58,11 @@
 \date{\today}
 \maketitle
 \tableofcontents
+\clearpage
 \listoffigures
 \clearpage
+
+
 \section{Introduction \& Problem Definition}
 
 \begin{minipage}{0.7\textwidth}
@@ -166,12 +169,9 @@ Given that approximately 30 hours of computational time were required to evaluat
 \label{fig:approach1}
 \end{figure}
 
-As seen in \autoref{fig:approach1}, the algorithm produced 8 optimal solutions (a maximal score of 133), and an average best individual of 92.06 pieces of food eaten (std: 45.64). This was achieved using an average tree size of 92 nodes. One should note that the algorithm only has a 33.3\% success rate in producing game-beating snakes; this is certainly related to the shortening of the algorithm by 350 generations, and the algorithm may therefore be more successful than the results above. Nevertheless, we can establish a benchmark against which we can compare future algorithms, keeping in mind the scale of resources provided to the algorithms is limited given available computing power. This can most easily be described as an average best score of 92.06 (std: 45.64), given 150 generations with a population of 10 000, with an average tree size of 92. 
+As seen in \autoref{fig:approach1}, the algorithm produced 8 optimal solutions (a maximal score of 133), and an average best individual of 92.06 pieces of food eaten (std: 45.64). One should note that the algorithm only has a 33.3\% success rate in producing game-beating snakes; this is certainly related to the shortening of the algorithm by 350 generations, and the algorithm may therefore be more successful than the results above. \newline
 
-When limited to a practical computational time (150 gens at 1000 population), the algorithm performs...... \newline
-
-GRAPH ABOUT FREQUENCY OF PRIMITIVES IN SOLUTIONS
-
+When limited to a practical computational time (150 gens at 1000 population), the algorithm performs equivalently well, with an average of 97.97 pieces of food eaten, and a smaller standard deviation of 29.79 over 30 runs. This highlights the volatility of the algorithm, as well as the need for a large population or a larger number of generation to obtain an optimal value. Nevertheless, we can establish a benchmark against which we can compare future algorithms, keeping in mind the scale of resources provided to the algorithms is limited given available computing power. This can most easily be described as an average best score of 97.97  (std: 29.79), given 150 generations with a population of 10 00, with an average tree size of 362.8 nodes. \newline
 
 \section{Testing \& Design methodology}
 In order to evaluate the effects of operators or fitness functions, each candidate fitness function will be evaluated 30 times, with a consistent configuration: a population of 1000 individuals evolved over 150 generations. We will aim to create an algorithm which requires less computational power, and produces optimal results more consistently with a smaller population and tree size. Fitness functions will be evaluated using the same algorithm (eaSimple), although a later comparison of algorithms will be run. Finally the optimal mutation and crossover probabilities will be found by iterating combinations of them with the most promising algorithm. As the benchmark algorithm discussed in \autoref{subsec:impl} does not produce normally distributed data (as visually verifiable using the graph), a Mann-Whitney U-test will be used to compare the score of subsequent algorithms, as it does not rely on the assumption of normal distributions.
@@ -211,26 +211,61 @@ Due to this, it was decided to aim for a non-greedy solution which would not sen
 The most significant difference of environment between our project and previous work involves the added complexity of using only absolute turning: as such, instead of a simple turn\_left and turn\_right function, we implement changeDirectionUp, changeDirectionRight, changeDirectionDown, changeDirectionLeft; these allow the snake's head to progress towards one of 4 directions at the next move. As these directions are difficult to use without any knowledge of the current heading (e.g: turning down when going north would cause the snake to reverse into it's own body), an additional 4 senses are used: if\_moving\_up, if\_moving\_down, if\_moving\_left, and if\_moving\_right. \newline
 
 As we will aim for a non-greedy solution, food sensing is not implemented in the new algorithm. We will aim to produce a hamiltonian cycle (where every space of the bordered plane is visited only once before returning to the original), as this will avoid having to take the snake's tail into consideration. Therefore, we will implement 4 wall-sensing functions: sense\_wall\_ahead, sense\_wall\_left, sense\_wall\_right and sense\_wall\_2\_away. The first 3 of these are relative to the snake's orientation, and allow the snake to navigate against a wall, whereas the the 4th sense allows the snake to avoid completely traversing the map along either the X or Y axis, thereby permitting it to avoid cutting itself off from part of the map which will be made available as it continues to move. \newline
-
+\begin{table}[]
+\centering
+\caption{Operators}
+\label{tab:operators}
+\begin{tabular}{|l|l|}
+\hline
+\textbf{Terminal} & \textbf{Non-terminal} \\ \hline
+go\_straight      & if\_wall\_2\_away     \\ \hline
+go\_up            & if\_wall\_left        \\ \hline
+go\_down          & if\_wall\_right       \\ \hline
+go\_right         & if\_wall\_ahead       \\ \hline
+go\_left          & if\_moving\_up        \\ \hline
+                  & if\_moving\_down      \\ \hline
+                  & if\_moving\_left      \\ \hline
+                  & if\_moving\_right     \\ \hline
+\end{tabular}
+\end{table}
 We have therefore created a small 13 operator set which can be used to produce a non-greedy snake.
 \subsection{Fitness function}
-- Why no food score? \newline
-Cannot use steps between food picked up as food placement is too random to produce useful results.
-- Single evaluation 
+Keeping in line with the aim of a greedy snake, our fitness function does not include the snake's score in the game; this is due to the fact that snakes cannot sense food, and therefore their score will be directly correlated with the distance travelled by the snake (and therefore it's distance travelled, as it moves at a constant speed). In addition, as the snake's score can greatly be influenced by the random placement of food in the starting few generations, removing the scoring of food reduces the skewing of a snake's fitness due to lucky food placing. This further reduces the need to evaluate each snake multiple times, as the snake only reacts relative to constant objects in the plane (4 walls). Finally, to ensure the hamiltonian cycle covers every square of the map, we introduce the notion of a cover to the fitness function, which is equal to the proportion of the map visited by the snake during the run. This ensures that snakes develop a maximal coverage of the map, so that it can grow to a maximal size. \newline
+We can therefore define the fitness function as \(fitness= (\% \ of\ map\ covered) + (steps/100)\). \newline
+In addition to this, we also implemented a penalty for snakes which enter a non-maximal loop: this is implemented by checking if the snake has timed out (i.e has travelled 196 steps without collecting food). This removes problematic solutions from the early stages of evolution, as these individuals would otherwise score highly due to their long survival; instead, they will now be assigned a fitness of -10, thereby greatly reducing their likelihood of selection, and therefore their effect on the population's genotype.
 
-\subsection{Mutation \& Crossover}
-Mutation changed to mutNodeReplacement as crossover is available to grow the tree, unlike 
+\subsection{Creation of individuals}
+\subsection{Selection, Mutation \& Crossover}
+As details of the selection algorithm in \cite{Ehlis2000-sz} are sparse, we decided to utilise a double tournament, to ensure that the size of the solutions was minimised given an equal fitness. As such, DEAP's 
+
+In contrast to \citeauthor{Ehlis2000-sz}\'s algorithm, which relied on the insertion of trees in the place of individual nodes to grow a solution beyond it's initial size (as crossover probability was set to 0), our genetic algorithm utilises crossover throughout it's evolution. Therefore, it was possible to rely on crossover to grow a tree's size, whilst DEAP's mutNodeReplacement operator, which replaces a primitive from an individual by any other primitive which has the same number of arguments, was used to mutate individuals. This allows nodes within the tree to be replaced with more appropriate nodes, thereby improving their fitness. \newline
+
+The basic one point crossover operator was used, without bias for leaf nodes. \newline
+http://ir.library.louisville.edu/cgi/viewcontent.cgi?article=1847&context=etd
+\subsection{Parameter selection}
+Mutation/Crossover probability
+\TODO pull rates from teaching0
+
 \subsection{GP Algorithm selection}
 eaSimple vs eaMewCommaLambda
 \subsection{Bloat control}
-\subsection{Parameter selection}
-Mutation/Crossover probability
+Bloat control was implemented using decorators on the crossover and mutation functions
+\TODO experiment with parsimony sizes once crossover/mutation complete
+
+\section{Code optimisation}
+\begin{itemize}
+	\item Reduced timeout limit to board size
+	\item Used Deque to speed up pre-pending and popping from snake body
+	\item Single evaluation required 
+\end{itemize}
 \section{Results and analysis}
 \section{Conclusion}
+Optimal seed: \lstinline{python approach4.py --seed 0.507299291138} for 50 gens
+\TODO verify seeding is correct
 \subsection{Further work}
 \begin{itemize}
 	\item Taking a population of optimal solutions, giving them more operators and evolving a more efficient A.I. which wins the game in the smallest time possible
-	\item 
+	\item Testing the ability to improve the reliability of the algorithm using larger populations, 
 \end{itemize}
 
 \clearpage

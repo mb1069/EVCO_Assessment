@@ -68,6 +68,7 @@
 
 \begin{minipage}{0.7\textwidth}
 The game of Snake was first invented in 1976, as an arcade game named 'Blockade', and later as a computer game named 'Worms' for the TRS-80 microcomputer in 1978 \cite{Goggin2010-ao}; it gained a huge traction on mobile phones following Nokia engineer Taneli Armanto's implementation of the game for the Nokia N6110, released in 2002 \cite{Goggin2010-ao}. The game, in which a single player controls a 'snake' composed of a dot, square or object, is named after the way in which the body of the dot, square or object trails behind the dot controlled by the player. The player can turn the snake's head to change it's direction of travel, whilst the forward movement is uniform relative to time (the player has no control over the speed at which the snake moves). The player aims to win the game by collecting food places on the screen, with every item of food eaten causing the snake's tail to grow. As the player eats more food, the tail grows longer, and it becomes more difficult to navigate the plane without colliding with a surrounding wall, or the player's tail: these form the 2 losing conditions, whilst a player who successfully grows his snake to cover the entire plane has beaten the game.  \newline
+
 Our version of the game is restricted to a 12x12 grid (144 spaces), surrounded by walls, with a single piece of food present on the board at any given time. Furthermore, the snake can go in any one of 4 directions (north, south, west, east), and always advances by 1 square at a time along either the X or Y axis of the board. As the snake is initialised with a body of size 11, the maximal score obtainable is $144-11=133$), at which point food cannot be placed on a tile not occupied by the snake's body. 
 \end{minipage}
 \begin{minipage}{0.02\textwidth}
@@ -80,6 +81,7 @@ Our version of the game is restricted to a 12x12 grid (144 spaces), surrounded b
 		\label{fig:snake}
 	\end{figure}
 \end{minipage}
+
 Within the context of this project, we will be aiming to produce an evolutionary algorithm (i.e: an algorithm capable of producing a game-winning A.I. from a set of logical connectives and in-game actions) which can beat the game. That is, we will aim to maximise the number of pieces of food eaten in a run of the game. Key challenges will likely be:
 \begin{itemize}
 	\item To ensure the snake does not collide into it's own tail or the surrounding walls.
@@ -149,34 +151,77 @@ In order to obtain benchmark fitness values, tree sizes and computational times 
 The algorithm was ran 30 times in order to obtain a reliable statistic of it's performance when provided with the population size and computational resources proposed by \citeauthor{Ehlis2000-sz}.
 Given that approximately 30 hours of computational time were required to evaluate this, a subsequent evaluation (using a population of 1000, and 150 generations) was run to obtain results against which we can compare our new algorithms quickly. Some assumptions regarding the type of mutation were made: uniform tree insertion was first considered, but as the crossover was set to probability 0, this would be unable to grow the tree. Therefore, a uniform mutation which inserts a subtree of depth 1-3 was utilised. Crossover was set with a probability of 0.0 as per \citeauthor{Ehlis2000-sz}'s design. Finally, we assumed that the fitness tournament was used to drive the population's average fitness upwards: this was implemented with a size of 2, and that a standard evolution algorithm was used (DEAP's eaSimple).\newline
 
-\begin{figure}
-\centering
-\resizebox {!} {7cm} {
-	\begin{tikzpicture}[font=\LARGE]
-	    \begin{axis}[xlabel=Food Eaten, ylabel=Count, ybar,xtick=,width=\textwidth]
+\begin{wrapfigure}{r}{0.5\textwidth}
+  \vspace{-20pt}
+  \begin{center}
+	  \resizebox {!} {7cm} {
+		\begin{tikzpicture}[font=\LARGE]
+		    \begin{axis}[xlabel=Food Eaten, ylabel=Count, ybar,xtick=,width=\textwidth]
 
+		    \addplot+[
+		    	hist={
+		    		data=x,
+		    		bins=14,
+		    		data min = 0,
+		    		data max = 134
+		    	}]
+		            file [y index=0]  {data/approach1_1000pop.csv};
+		\end{axis}
+		\end{tikzpicture}
+	}
+	  \vspace{-20pt}
+		\caption{Histogram of best individuals from \citeauthor{Ehlis2000-sz}'s algorithm, 500 generations, 1000 population}
+		\label{fig:approach1}
+	  \vspace{-10pt}
+	  \end{center}
+\end{wrapfigure}
+
+
+
+When limited to a practical computational time (150 gens at 1000 population), the algorithm performs well, with an average of 97.97 pieces of food eaten, and a smaller standard deviation of 29.79 over 30 runs. This highlights the volatility of the algorithm, as well as the need for a large population or a larger number of generation to obtain an optimal value. One should note that the algorithm only has a 16.6\% success rate in producing optimal (game beating) snakes; this is certainly related to the shortening of the algorithm by 350 generations, and the algorithm may therefore be more 
+successful than the results above. This was demonstrated in \cite{Ehlis2000-sz}, who finds that given a primed population it is possible to consistently an average max score of the population close to 200.
+
+This was verified using a second evaluation of the algorithm for 150 generations and 10\, 000 population, as seen in \autoref{fig:box_plot_approach1}. A double tournament was however used to ensure the evaluation could be undertaken given the available resources: this may be the cause of the larger standard deviation of the results, but we can note that as the median of the population is higher in the data with the larger population, we can expect the algorithm to perform. It is therefore possible that our final algorithm would perform better than the results detailed in this report if given a larger population or number of generations; this would have to be verified in the work's extension.\newline 
+
+Nevertheless, we can establish a benchmark against which we can compare future algorithms, keeping in mind the scale of resources provided to the algorithms is limited given available computing power. This can most easily be described as an average best score of 97.97  (std: 29.79), given 150 generations with a population of 1000, with an average tree size of 362.8 nodes. \newline
+
+\begin{wrapfigure}{r}{0.4\textwidth}
+  \vspace{-50pt}
+  \begin{center}
+	\begin{tikzpicture}
+	  \begin{axis}
+	    [
+	    width=0.4\textwidth,
+	    ytick={1},
+	    yticklabels={1\,000},
+	    ylabel=Population,
+	    xlabel=Food eaten
+	    ]
+
+	    ] coordinates {};
 	    \addplot+[
-	    	hist={
-	    		data=x,
-	    		bins=14,
-	    		data min = 0,
-	    		data max = 134
-	    	}]
-	            file [y index=0]  {data/approach1.csv};
-	\end{axis}
+	    boxplot prepared={
+	      median=108.5,
+	      upper quartile=122,
+	      lower quartile=79,
+	      upper whisker=133,
+	      lower whisker=33
+	    },
+	    ] coordinates {};
+
+	  \end{axis}
 	\end{tikzpicture}
-}
-\caption{Histogram of best individuals from \citeauthor{Ehlis2000-sz}'s algorithm, 500 generations, 10,000 population}
-\label{fig:approach1}
-\end{figure}
+	  \vspace{-5pt}
+		\caption{Results of \citet{Ehlis2000-sz}\'s algorithm over 30 runs.}
+		\label{fig:box_plot_approach1}
+	  \vspace{-10pt}
+	  \end{center}
+\end{wrapfigure}
 
-As seen in \autoref{fig:approach1}, the algorithm produced 8 optimal solutions (a maximal score of 133), and an average best individual of 92.06 pieces of food eaten (std: 45.64). One should note that the algorithm only has a 33.3\% success rate in producing game-beating snakes; this is certainly related to the shortening of the algorithm by 350 generations, and the algorithm may therefore be more successful than the results above. \newline
-
-When limited to a practical computational time (150 gens at 1000 population), the algorithm performs equivalently well, with an average of 97.97 pieces of food eaten, and a smaller standard deviation of 29.79 over 30 runs. This highlights the volatility of the algorithm, as well as the need for a large population or a larger number of generation to obtain an optimal value. Nevertheless, we can establish a benchmark against which we can compare future algorithms, keeping in mind the scale of resources provided to the algorithms is limited given available computing power. This can most easily be described as an average best score of 97.97  (std: 29.79), given 150 generations with a population of 10 00, with an average tree size of 362.8 nodes. \newline
 
 \section{Testing \& Design methodology}
 \label{sec:methodology}
-In order to evaluate the effects of operators or fitness functions, each candidate fitness function will be evaluated 30 times, with a consistent configuration: a population of 1000 individuals evolved over 150 generations. We will aim to create an algorithm which requires less computational power, and produces optimal results more consistently with a smaller population and tree size. Fitness functions will be evaluated using the same algorithm (eaSimple), although a later comparison of algorithms will be run. Finally the optimal mutation and crossover probabilities will be found by iterating combinations of them with the most promising algorithm. As the benchmark algorithm discussed in \autoref{subsec:impl} does not produce normally distributed data (as visually verifiable using the graph), a Mann-Whitney U-test will be used to compare the score of subsequent algorithms, as it does not rely on the assumption of normal distributions. The two tailed variation of the U-test will be used, to ensure both algorithms can be found to be statistically better than the other. A p value of 0.05 will be used as a level of statistical significance.\newline
+In order to evaluate the effects of operators or fitness functions, each candidate fitness function will be evaluated 30 times, with a consistent configuration: a population of 1000 individuals evolved over 150 generations. We will aim to create an algorithm which requires less computational power, and produces optimal results more consistently with a smaller population and tree size. Fitness functions will be evaluated using the same algorithm (eaSimple), although a later comparison of algorithms will be run. Finally the optimal mutation and crossover probabilities will be found by iterating combinations of them with the most promising algorithm. As the benchmark algorithm discussed in \autoref{subsec:impl} does not produce normally distributed data (as visually verifiable using the graph), a Mann-Whitney U-test will be used to compare the score of subsequent algorithms, as it does not rely on the assumption of normal distributions\cite{Timm2002-lo}.  The two tailed variation of the U-test will be used, to ensure both algorithms can be found to be statistically better than the other. A p value of 0.05 will be used as a level of statistical significance.\newline
 
 
 \section{Design \& implementation}
@@ -190,16 +235,7 @@ As \citet{Ehlis2000-sz} has already demonstrated a game-beating A.I, it was deci
 	\item Reducing the computational time
 	\item Reducing the size of the average game-beating solution
 \end{itemize}
-Building on the work by \citeauthor{Ehlis2000-sz}, we will aim to adapt his design to our requirements whilst improving it. \newline
-
-As noted by \citet{Christopher_Lockhart2010-em} in his publication about difference learning in Snake, "the greedy behaviour of [a learning agent] may be the cause of the agent's lack of high scores. Whilst this is disproven by the success rate of \citeauthor{Ehlis2000-sz}\'s algorithm, we could argue that given a sufficiently large population, a set of operators can produce any solution which could also be produced by a subset of those operators. We attempted to demonstrate this in \autoref{fig:operator_prob}, where we compiled statistics from the best individuals of optimal (game-winning with a score of 133) and non-optimal solutions, across 30 runs with a population of 10 000 and 150 generations. As we can see, there is no noticeable difference between the frequency of operators, thereby demonstrating that not all optimal solutions are greedy, as this would be reflected by a lower percentage of food sensing functions (redundancies in the graphs (such as repeated operators or unrecheable branches) and noise in the data obtained may also have obscured any visible pattern). Nevertheless, we will hypothesise that developing a non-greedy snake may have the following benefits.
-
-\begin{figure}
-\centering
-	\includegraphics[width=\textwidth,keepaspectratio]{images/operator_prob.png}
-	\caption{Difference in statistics of operators between optimal and non-optimal solutions}
-	\label{fig:operator_prob}
-\end{figure}
+Building on the work by \citeauthor{Ehlis2000-sz}, we will aim to adapt his design to our requirements whilst improving it. As noted by \citet{Christopher_Lockhart2010-em} in his publication about difference learning in Snake, "the greedy behaviour of [a learning agent] may be the cause of the agent's lack of high scores. Whilst this is disproven by the success rate of \citeauthor{Ehlis2000-sz}'s algorithm, we could argue that given a sufficiently large population, a set of operators can produce any solution which could also be produced by a subset of those operators. We attempted to demonstrate this in \autoref{app:operator_prob}, where we compiled statistics from the best individuals of optimal (game-winning with a score of 133) and non-optimal solutions, across 30 runs with a population of 10 000 and 150 generations. As we can see, there is no noticeable difference between the frequency of operators, thereby demonstrating that not all optimal solutions are greedy, as this would be reflected by a lower percentage of food sensing functions (redundancies in the graphs (such as repeated operators or unrecheable branches) and noise in the data obtained may also have obscured any visible pattern). Nevertheless, we will hypothesise that developing a non-greedy snake may have the following benefits:
 
 \begin{itemize}
 	\item A greedy snake which alters it's movement based on the positioning of food is likely to require additional sensing to avoid going causing game-ending situations, such as entering a dead-end to get closer to a piece of food. This would require the handling of many edge cases, which will cause the need for a large solution, which is therefore difficult to evolve. A non-greedy snake, which would aim to find a hamiltonian cycle through the map such that it's tail will never be in it's direct path until it has reached maximal size, could require a significantly smaller function to define it; this should make it easier to evolve, and therefore increase the reliability and speed of the algorithm.
@@ -207,15 +243,13 @@ As noted by \citet{Christopher_Lockhart2010-em} in his publication about differe
 \end{itemize}
 Due to this, it was decided to aim for a non-greedy solution which would not sense for food, but would rather aim to explore the map in a maximal way; this would adequately resolve the prescribed goal of beating the game by obtaining a maximal score, even though it may not be achieved in a minimalistic way.
 
-
-
 \subsection{Terminal and Non-terminal set}
 \label{subsec:design_terminals}
 The most significant difference of environment between our project and previous work involves the added complexity of using only absolute turning: as such, instead of a simple turn\_left and turn\_right function, we implement changeDirectionUp, changeDirectionRight, changeDirectionDown, changeDirectionLeft; these allow the snake's head to progress towards one of 4 directions at the next move. As these directions are difficult to use without any knowledge of the current heading (e.g: turning down when going north would cause the snake to reverse into it's own body), an additional 4 senses are used: if\_moving\_up, if\_moving\_down, if\_moving\_left, and if\_moving\_right. \newline
 
 As we will aim for a non-greedy solution, food sensing is not implemented in the new algorithm. We will aim to produce a hamiltonian cycle (where every space of the bordered plane is visited only once before returning to the original), as this will avoid having to take the snake's tail into consideration. Therefore, we will implement 4 wall-sensing functions: sense\_wall\_ahead, sense\_wall\_left, sense\_wall\_right and sense\_wall\_2\_away. The first 3 of these are relative to the snake's orientation, and allow the snake to navigate against a wall, whereas the the 4th sense allows the snake to avoid completely traversing the map along either the X or Y axis, thereby permitting it to avoid cutting itself off from part of the map which will be made available as it continues to move. \newline
 
-\begin{wraptable}{l}{0.35\textwidth}
+\begin{wraptable}{r}{0.35\textwidth}
 	\centering
 	\begin{tabular}{|l|l|}
 		\hline
@@ -233,30 +267,76 @@ As we will aim for a non-greedy solution, food sensing is not implemented in the
 	\label{tab:operators}
 \end{wraptable}
 
-We have therefore created a small 13 operator set which can be used to produce a non-greedy snake. \newline
 Some additional tests were conducted to determine alternative operators to if\_wall\_2\_away (set 3): more specific operators (such as if\_wall\_2\_ahead or if\_wall\_2\_right) were evaluated in place of the aforementioned operator, and resulted in a worse performance. This was evaluated over 30 runs with each set of operators, using the fitness function defined in \autoref{subsec:fitness_func}, with a crossover probability of 0.8, a mutation probability of 0.7, a doubleTournament selection of size 5 with a parsimony value of 1.05 and fitnessFirst=True, using DEAP's eaSimple GP algorithm. Other operators included in the evaluation were all 5 terminals, all 4 orientation sensing, and all wall sensing of distance 1 (if\_wall\_ahead, if\_wall\_right and if\_wall\_left). \newline
-This resulted in \autoref{tab:operator_comparison}: as we can clearly see, the smaller, more generic operator set consisting of the aforementioned operators in addition to if\_wall\_2\_away (which returns true if the snake's head is 2 spaces away from a wall in any direction) results in a consistently better fitness. This is reflected by the difference in averages, and is confirmed to be statistically significant by the Mann-Whitney U-test values: set 3 has a higher median than set 1, with a Z-score=2.489 and p=01278, and set 3 also has a higher median than set 2 with a Z-score=2.682, p=0.00736. The third set is therefore statistically superior to other proposed operator sets, and will be used to evaluate in our algorithm, as detailed in \autoref{tab:operators}.
 
-\begin{table}
-\centering
-
-\begin{tabular}{|l|l|l|l|}
-\hline
- & Set 1 & Set 2 & Set 3 \\ \hline
-Alternative wall sensing operators & 2\_left, 2\_right, 2\_ahead & 2\_right, 2\_ahead & 2\_away \\ \hline
-Avg score & 26.198 & 27.626 & 47.2915 \\ \hline
-STD & 43.874 & 45.570 & 57.791 \\ \hline
-Optimal runs & 1 & 3 & 6 \\ \hline
-Ratio of perfect scores & 0.05 & 0.15 & 0.3 \\ \hline
-\end{tabular}
-\caption{Comparison of operator sets}
-\label{tab:operator_comparison}
+\begin{table}[h]
+	\centering
+	\begin{tabular}{|l|l|l|l|}
+	\hline
+	 & Set 1 & Set 2 & Set 3 \\ \hline
+	Alternative wall sensing operators & 2\_left, 2\_right, 2\_ahead & 2\_right, 2\_ahead & 2\_away \\ \hline
+	Avg score & 26.198 & 27.626 & 47.2915 \\ \hline
+	STD & 43.874 & 45.570 & 57.791 \\ \hline
+	Optimal runs & 1 & 3 & 6 \\ \hline
+	Ratio of perfect scores & 0.05 & 0.15 & 0.3 \\ \hline
+	\end{tabular}
+	\caption{Comparison of operator sets}
+	\label{tab:operator_comparison}
 \end{table}
+\begin{wrapfigure}{r}{0.4\textwidth}
+  \vspace{-20pt}
+  \begin{center}
+	\begin{tikzpicture}
+	  \begin{axis}
+	    [
+	    width=0.4\textwidth,
+	    ytick={1,2,3},
+	    yticklabels={Set 3, Set 2, Set 1},
+	    xlabel=Food eaten
+	    ]
+
+	    \addplot+[
+	    boxplot prepared={
+	      median=14.64,
+	      upper quartile=133,
+	      lower quartile=14.5,
+	      upper whisker=133,
+	      lower whisker=0.77
+	    },
+	    ] coordinates {};
+	    \addplot+[
+	    boxplot prepared={
+	      median=11.12,
+	      upper quartile=12.5175,
+	      lower quartile=7.0725,
+	      upper whisker=133,
+	      lower whisker=2.93
+	    },
+	    ] coordinates {};
+	    \addplot+[
+	    boxplot prepared={
+	      median=11.325,
+	      upper quartile=14.5975,
+	      lower quartile=3.24,
+	      upper whisker=133,
+	      lower whisker=1.47
+	    },
+	    ] coordinates {};
+	  \end{axis}
+	\end{tikzpicture}
+	  \vspace{-5pt}
+		\caption{Comparative plots of operator sets described in \autoref{tab:operator_comparison}}
+		\label{fig:box_plot_operators}
+	  \vspace{-10pt}
+	  \end{center}
+\end{wrapfigure}
+This resulted in \autoref{tab:operator_comparison}: as we can clearly see, the smaller, more generic operator set consisting of the aforementioned operators in addition to if\_wall\_2\_away (which returns true if the snake's head is 2 spaces away from a wall in any direction) results in a consistently better fitness. This is reflected by the difference in averages, and is confirmed to be statistically significant by the Mann-Whitney U-test values: set 3 has a higher median than set 1, with a Z-score=2.489, U=180.5 and p=01278, and set 3 also has a higher median than set 2 with a Z-score=2.682, U=170.5, p=0.00736. The third set is therefore statistically superior to other proposed operator sets, and will be used to evaluate in our algorithm, as detailed in \autoref{tab:operators}.
 
 
 \subsection{Fitness function}
 \label{subsec:fitness_func}
 Keeping in line with the aim of a greedy snake, our fitness function does not include the snake's score in the game; this is due to the fact that snakes cannot sense food, and therefore their score will be directly correlated with the distance travelled by the snake (and therefore it's distance travelled, as it moves at a constant speed). In addition, as the snake's score can greatly be influenced by the random placement of food in the starting few generations, removing the scoring of food reduces the skewing of a snake's fitness due to lucky food placing. This further reduces the need to evaluate each snake multiple times, as the snake only reacts relative to constant objects in the plane (4 walls). Finally, to ensure the hamiltonian cycle covers every square of the map, we introduce the notion of a cover to the fitness function, which is equal to the proportion of the map visited by the snake during the run. This ensures that snakes develop a maximal coverage of the map, so that it can grow to a maximal size. \newline
+
 We can therefore define the fitness function as \(fitness= (\% \ of\ map\ covered) + (steps/100)\). \newline
 In addition to this, we also implemented a penalty for snakes which enter a non-maximal loop: this is implemented by checking if the snake has timed out (i.e has travelled 196 steps without collecting food). This removes problematic solutions from the early stages of evolution, as these individuals would otherwise score highly due to their long survival; instead, they will now be assigned a fitness of -10, thereby greatly reducing their likelihood of selection, and therefore their effect on the population's genotype.
 
@@ -266,14 +346,16 @@ In contrast to \citeauthor{Ehlis2000-sz}'s algorithm, which relied on the insert
 
 As details of the selection algorithm in \cite{Ehlis2000-sz} are sparse, we decided to utilise a double tournament, to ensure that the size of the solutions was minimised given an equal fitness. As such, DEAP's doubleTournament implementation allows the size of individuals to be minimised without greatly hampering the fitness of the population. The parameters for the mutation rate, crossover rate, tournament size and parsimony can be found in \autoref{sec:params}.\newline
 
-\(http://ir.library.louisville.edu/cgi/viewcontent.cgi?article=1847\&context=etd\)
-
 \subsection{Parameter selection}
 \label{sec:params}
-Mutation/Crossover probability
+In order to obtain a tuple of parameters (crossover probability, mutation probability, selection tournament size, parsimony), a search across pairs of crossover and mutation probabilites was undertaken. This was implemented using the set of operators defined in \autoref{tab:operators}, using DEAP's eaSimple algorithm Each combination of probabilities (in increments of 10\%) was evaluated 5 times, and it's average was plotted in \autoref{fig:mutpb_cxpb}. Additional runs would have been beneficial to the overal smoothness of the graph, as outlying runs may have a strong impact on the averaged value. Nevertheless, an optimal mutation rate of 0.8 and a crossover rate of 0.7 were chosen as the best parameters. The same search was repeated over tournament size (range from 2 to 7 in integer increments) and parsimony (range from 1 to 2 in 0.05 increments. \newline
+
+The population size was kept at 150 to allow for a statistical comparison of our algorithm 
+We should note that this method suffers from the assumption of independence between the two searches; that is, crossover probability and mutation rates affect the population's fitness independently to the selection tournament's fitness size and parsimony. This approach was selected to maximise the success of the algorithm given the constraints of this project; an alternative approach could be to implement a genetic algorithm which could alter these four parameters, and evolve an optimal parametrisation of our current algorithm. This method is known as a meta-genetic algorithm, and was succesfully used by \citet{Brain2011-pz} to parametrise the crossover rate, mutation rate, tournament selection method and population size of another genetic algorithm. Therefore, the full set of parameters for our genetic algorithm could be determined by a meta-genetic algorithm, given sufficient computational power and time.\newline
+
 \begin{figure}[H]
 \centering
-	\includegraphics[width=0.5\textwidth,keepaspectratio]{images/cxpb_mutpb.png}
+	\includegraphics[width=\textwidth,keepaspectratio]{images/cxpb_mutpb.png}
 	\caption{Average of 5 runs over the space of mutation and crossover rates, in increments of 0.1.}
 	\label{fig:mutpb_cxpb}
 \end{figure}
@@ -284,14 +366,12 @@ eaSimple vs eaMewCommaLambda
 \subsection{Bloat control}
 Bloat control was implemented using decorators on the crossover and mutation functions
 \TODO experiment with parsimony sizes once crossover/mutation complete
-\subsection{Algorithm summary}
-Our 
-\section{Code optimisation}
-\begin{itemize}
-	\item Reduced timeout limit to board size
-	\item Used Deque to speed up pre-pending and popping from snake body
-	\item Single evaluation required 
-\end{itemize}
+
+
+\subsection{Code optimisation}
+\label{subsec:code_optimisation}
+A series of optimisations were undertaken to improve the performance of our algorithms. Firstly, the timeout limit of a snake's run, which causes a snake to 'die' after a certain time has passed since it has last eaten food, was reduced to the size of the board. This allows earlier generations, where looping snakes occur the most, to end before any un-necessary computation occurs. \newline
+The body of the snake was re-implemented using python's Deque collection \cite{noauthor_undated-bi}, which is optimised for fast appends and pops on either end of the list-like container. The food positioning algorithm was improved, such that instead of randomly selecting a tile in the plane before checking it would be a valid space for food, the algorithm instead creates a list of free spaces, and randomly selects one from that list. This flattens the response time of the algorithm, which would most likely have been faster at the start of the game, but would require a significant number of queries before randomly finding an available tile. Finally, python's MultiProcessing module was added to the project, which allowed the evaluation of a generation of snakes to occur in parallel over a large number of cores, thereby greatly reducing the computational time required per generation. Multiprocessing was conditionally removed from the code to evaluate it's computational time relative to \citet{Ehlis2000-sz}, and is also un-used when the algorithm is provided with a seed (as this causes the execution to become non-deterministic).
 
 \section{Results and analysis}
 Following the methodology defined in \autoref{sec:methodology}, our new algorithm 
@@ -353,6 +433,14 @@ Optimal seed: \lstinline{python approach4.py --seed 0.507299291138} for 50 gens
 \bibliography{references}
 \clearpage
 \begin{appendices}
+	\section{Difference in operator statistics between optimal and non-optimal solutions}
+	\label{app:operator_prob}
+	\begin{figure}[H]
+		\centering
+		\includegraphics[width=\textwidth,keepaspectratio]{images/operator_prob.png}
+		\caption{Difference in statistics of operators between optimal and non-optimal solutions}
+		
+	\end{figure}
 
 	\section{Benchmark algorithm}\label{app:approach1}
 	Based on the design document by \citet{Ehlis2000-sz}. \newline

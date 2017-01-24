@@ -472,7 +472,7 @@ def main(multicore, seeded):
     hof = tools.HallOfFame(3)
     try:
         pop, log = algorithms.eaSimple(
-            pop, toolbox, cxpb, mutpb, GENERATIONS, stats=mstats, halloffame=hof, verbose=True)
+            pop, toolbox, cxpb, mutpb, GENERATIONS, stats=mstats, halloffame=hof, verbose=False)
         # pop, log = algorithms.eaMuPlusLambda(
         #     pop, toolbox, int(POP*0.05), int(POP*0.5), cxpb, mutpb, GENERATIONS, stats=mstats, halloffame=hof, verbose=True)
         expr = tools.selBest(pop, 1)[0]
@@ -482,10 +482,6 @@ def main(multicore, seeded):
         evals = 100
         val = runInGame(expr, evals)
         print "Evaluating: ", str(evals), "times, average score: ", str(val)
-
-        if seeded:
-            displayStrategyRun(expr)
-
         # nodes, edges, labels = gp.graph(expr)
         # g = pgv.AGraph(nodeSep=1.0)
         # g.add_nodes_from(nodes)
@@ -521,23 +517,23 @@ if __name__ == "__main__":
         multicore = False
         print "Seed detected, ignoring other flags (running single run on non-multicore process to ensure deterministic execution)."
    
-
-    try:
-        for x in range(0, iterations):
-            if args.seed is not None:
-                seed = float(args.seed)
-            else:
-                seed = random.random()
-            random.seed(seed)
-            out = main(multicore, args.seed is not None)
-            record = out[0]
-            if args.save_results:
-                row = (record['fitness']['avg'], record['fitness']['max'], record['fitness']['std'], record['size']['avg'], record['size']['max'], record['size']['std'], out[1], "\r")
-                fd = open('approach4_results.csv', 'a')
-                fd.write(",".join(map(str, row)))
-                fd.close()
-            print "Seed: " + str(seed)
-            if str(record['fitness']['max'])=="133":
-                break
-    except KeyboardInterrupt:
-        print "Terminated by user, after %s iterations" % str(x)
+    c1 = [0.7, 0.8]
+    m1 = [0.9]
+    for cxpb in c1:
+        for mutpb in m1:
+            print cxpb, mutpb
+            total = 0.0
+            for x in range(0, 5):
+                print "     " + str(x)
+                if args.seed is not None:
+                    seed = float(args.seed)
+                else:
+                    seed = random.random()
+                random.seed(seed)
+                total += main(True, False)[1]
+            total = str(total/5)
+            row = (str(mutpb), str(cxpb), str(total), "\r")
+            fd = open('mutpb_cxpb.csv', 'a')
+            fd.write(",".join(map(str, row)))
+            fd.close()
+    print "Terminated by user, after %s iterations" % str(x)

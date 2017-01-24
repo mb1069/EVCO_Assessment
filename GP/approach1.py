@@ -446,7 +446,7 @@ def main():
     toolbox.register("compile", gp.compile, pset=pset)
 
     toolbox.register("evaluate", runGame)
-    toolbox.register("select", tools.selTournament, tournsize=2)
+    toolbox.register("select", tools.selDoubleTournament, fitness_size=2, parsimony_size=1.15, fitness_first=True)
     toolbox.register("mate", gp.cxOnePoint)
     toolbox.register("expr_mut", gp.genHalfAndHalf, min_=1, max_=3, pset=pset)
     toolbox.register("mutate", gp.mutUniform, expr=toolbox.expr_mut, pset=pset)

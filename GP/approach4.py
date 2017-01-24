@@ -1,4 +1,3 @@
-# MutShrink with low mutation rate
 import curses
 import random
 import operator
@@ -7,13 +6,11 @@ import numpy
 from functools import partial
 from collections import deque
 
-# import algorithms
 from deap import algorithms
 from deap import base
 from deap import creator
 from deap import tools
 from deap import gp
-# import pygraphviz as pgv
 import multiprocessing
 import sys
 import argparse as ap
@@ -25,13 +22,14 @@ INIT_SIZE = -1
 # NOTE: YOU MAY NEED TO ADD A CHECK THAT THERE ARE ENOUGH SPACES LEFT FOR
 # THE FOOD (IF THE TAIL IS VERY LONG)
 NFOOD = 1
-GENERATIONS = 90
+GENERATIONS = 150
 POP = 1000
 NUM_EVALS = 1
 cxpb = 0.7
 mutpb = 0.8
 parsimony = 1.05
 max_tree_depth = 7
+fitness_size = 5
 
 def if_then_else(condition, out1, out2):
     out1() if condition() else out2()
@@ -241,26 +239,6 @@ def place_food(snake):
             return ()
         rand = random.randint(0, len(free_spaces)-1)
         food.insert(0, free_spaces[rand])
-        # randx = random.randint(1, (XSIZE - 2))
-        # randy = random.randint(1, (YSIZE - 2))
-        # rand_food_tile = [randy, randx]
-
-
-        # if is_tile_empty(snake, food, rand_food_tile):
-        #     food.insert(0, rand_food_tile)
-        # else:
-        #     closest_free_tile = rand_food_tile
-        #     min_d = -1
-        #     for x in range(XSIZE-1):
-        #         for y in range(YSIZE-1):
-        #             # print x,y, is_tile_empty(snake, food, [y,x])
-        #             if is_tile_empty(snake, food, [y,x]):
-        #                 d = numpy.sqrt(numpy.power(y-randy,2) + numpy.power(x-randx,2))
-        #                 if d<min_d:
-        #                     min_d = d
-        #                     closest_free_tile[0] = y
-        #                     closest_free_tile[1] = x
-        #     food.insert(0, closest_free_tile)
 
     snake.food = food  # let the snake know where the food is
     return (food)
@@ -283,7 +261,9 @@ def runGame(individual):
         tours = 0
         steps = 0 
         while not snake.snake_has_collided() and not timer == (XSIZE-2) * (YSIZE-2):
-            ## EXECUTE THE SNAKE'S BEHAVIOUR HERE ##
+            # Verify game-winning condition
+            if snake.score == ((XSIZE-2) * (YSIZE-2)) - snake.initial_size:
+                break
             routine()
             snake.updatePosition()
             if snake.body[0] in food:
@@ -298,6 +278,7 @@ def runGame(individual):
                 timer += 1  # timesteps since last eaten
             steps+=1
             tour.add(str(snake.body[0]))
+        # Penalise snakes which have timed out 
         if timer == XSIZE * YSIZE:
             return -10,
         total_steps += steps
@@ -307,7 +288,6 @@ def runGame(individual):
     avg_score = total_score/NUM_EVALS
     coverage = float(len(tour))/float((XSIZE-2)*(YSIZE-2))
     return coverage + avg_steps,
-    # return coverage * avg_steps,
 
 
 def runInGame(individual, evals):
@@ -323,11 +303,8 @@ def runInGame(individual, evals):
         timer = 0
 
         while not snake.snake_has_collided() and not timer == (XSIZE-2) * (YSIZE-2):
-            ## EXECUTE THE SNAKE'S BEHAVIOUR HERE ##
             routine()
             snake.updatePosition()
-            if snake.score == ((XSIZE-2) * (YSIZE-2)) - snake.initial_size:
-                break
             if snake.body[0] in food:
                 snake.score += 1
                 try:
@@ -412,11 +389,9 @@ def displayStrategyRun(individual):
 def main(multicore, seeded):
     global snake
     global pset
-    print multicore
     snake = SnakePlayer()
 
     pset = gp.PrimitiveSet("MAIN", 0)
-
 
     pset.addPrimitive(snake.if_wall_2_away, 2, name="if_wall_2_away")
     pset.addPrimitive(snake.if_wall_left, 2, name="if_wall_left")
@@ -445,9 +420,8 @@ def main(multicore, seeded):
     toolbox.register("compile", gp.compile, pset=pset)
 
     toolbox.register("evaluate", runGame)
-    toolbox.register("select", tools.selDoubleTournament, fitness_size=5, parsimony_size=parsimony, fitness_first=True)
+    toolbox.register("select", tools.selDoubleTournament, fitness_size=fitness_size, parsimony_size=parsimony, fitness_first=True)
     toolbox.register("mate", gp.cxOnePoint)
-    toolbox.register("expr_mut", gp.genFull, min_=1, max_=2, pset=pset)
     toolbox.register("mutate", gp.mutNodeReplacement, pset=pset)
 
     toolbox.decorate("mate", gp.staticLimit(
@@ -460,7 +434,6 @@ def main(multicore, seeded):
     mstats = tools.MultiStatistics(fitness=stats_fit, size=stats_size)
     mstats.register("avg", lambda x: float(int(numpy.mean(x)*100))/100)
     mstats.register("std", lambda x: float(int(numpy.std(x)*100))/100)
-    # mstats.register("min", numpy.min)
     mstats.register("max", numpy.max)
 
     if multicore:
@@ -473,8 +446,6 @@ def main(multicore, seeded):
     try:
         pop, log = algorithms.eaSimple(
             pop, toolbox, cxpb, mutpb, GENERATIONS, stats=mstats, halloffame=hof, verbose=True)
-        # pop, log = algorithms.eaMuPlusLambda(
-        #     pop, toolbox, int(POP*0.05), int(POP*0.5), cxpb, mutpb, GENERATIONS, stats=mstats, halloffame=hof, verbose=True)
         expr = tools.selBest(pop, 1)[0]
         print expr
 
@@ -484,17 +455,9 @@ def main(multicore, seeded):
         print "Evaluating: ", str(evals), "times, average score: ", str(val)
 
         if seeded:
+            raw_input("Press any key to view the snake...")
             displayStrategyRun(expr)
 
-        # nodes, edges, labels = gp.graph(expr)
-        # g = pgv.AGraph(nodeSep=1.0)
-        # g.add_nodes_from(nodes)
-        # g.add_edges_from(edges)
-        # g.layout(prog="dot")
-        # for i in nodes:
-        #     n = g.get_node(i)
-        #     n.attr["label"] = labels[i]
-        # g.draw("tree.pdf")
     except KeyboardInterrupt:
         if multicore:
             pool.terminate()
@@ -509,6 +472,7 @@ if __name__ == "__main__":
     parser.add_argument("--multicore", action='store_true')
     parser.add_argument("--seed")
     parser.add_argument("--save_results", action='store_true')
+    parser.add_argument("--max_gen", type=int)
 
 
     args, leftovers = parser.parse_known_args()
@@ -521,7 +485,8 @@ if __name__ == "__main__":
         multicore = False
         print "Seed detected, ignoring other flags (running single run on non-multicore process to ensure deterministic execution)."
    
-
+    if args.max_gen is not None:
+        GENERATIONS = args.max_gen
     try:
         for x in range(0, iterations):
             if args.seed is not None:
@@ -536,8 +501,5 @@ if __name__ == "__main__":
                 fd = open('approach4_results.csv', 'a')
                 fd.write(",".join(map(str, row)))
                 fd.close()
-            print "Seed: " + str(seed)
-            if str(record['fitness']['max'])=="133":
-                break
     except KeyboardInterrupt:
         print "Terminated by user, after %s iterations" % str(x)

@@ -262,7 +262,7 @@ def runGame(individual):
         steps = 0 
         while not snake.snake_has_collided() and not timer == (XSIZE-2) * (YSIZE-2):
             # Verify game-winning condition
-            if snake.score == ((XSIZE-2) * (YSIZE-2)) - snake.initial_size:
+            if snake.score == ((XSIZE-2) * (YSIZE-2)) - snake.initial_size+1:
                 break
             routine()
             snake.updatePosition()
@@ -316,6 +316,7 @@ def runInGame(individual, evals):
                 snake.body.pop()
                 timer += 1  # timesteps since last eaten
         total_score += snake.score
+        print snake.score
     avg_score = total_score/evals
     return avg_score
 
@@ -450,7 +451,7 @@ def main(multicore, seeded):
         print expr
 
 
-        evals = 100
+        evals = 10
         val = runInGame(expr, evals)
         print "Evaluating: ", str(evals), "times, average score: ", str(val)
 
